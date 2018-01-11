@@ -14,11 +14,13 @@ export class SimplifierService {
         result = result.replace(/\>\s+\</g,"><");
 
         // Remove all comments, doctype declarations, and xml declarations.
-        return this._removeComments(result);
+        result = this._removeComments(result);
+
+        // Shorten color hex codes (ie #DDFF00 --> #DF0).
+        return this._shortenHexCodes(result);
 
         // TODO Remove empty groups.
 
-        // TODO Simplify color hex codes (ie #DDFF00 --> #DF0).
     }
 
     /**
@@ -41,6 +43,26 @@ export class SimplifierService {
 
         return segments.join("><");
 
+    }
+
+    /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
+    private _shortenHexCodes(data: string): string {
+
+        let result: string = data;
+
+        // Get all hex colors from the document.
+        let hexColors: Set<string> = new Set(result.match(/#[0-9a-f]{6}/gi));
+
+        hexColors.forEach(hex => {
+            if (hex.charAt(1) == hex.charAt(2) &&
+                hex.charAt(3) == hex.charAt(4) &&
+                hex.charAt(5) == hex.charAt(6)
+            ) {
+                result = result.replace(new RegExp(hex, "gi"), "#" + hex.charAt(1) + hex.charAt(3) + hex.charAt(5));
+            }
+        });
+
+        return result;
     }
 
 }
