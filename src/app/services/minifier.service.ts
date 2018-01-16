@@ -202,12 +202,12 @@ export class MinifierService {
                     }
                 }
                 else {
-                    value = this._parseReference(value);
-                    if (value) {
-                        let id: IdProperties = map[value];
+                    let oldId: string = this._parseReference(value);
+                    if (oldId) {
+                        let id: IdProperties = map[oldId];
                         if (id) {
                             if (id.replacement) {
-                                properties[key] = id.replacement;
+                                properties[key] = value.replace(oldId, id.replacement);
                             }
                             else {
                                 delete properties[key];
