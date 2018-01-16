@@ -83,12 +83,13 @@ export class SvgObject {
         // If there is only the tag in the element contents, then we can stop here.
         if (tagEndIndex < 0) {
             this._tag = contents;
-            this._type = SvgObjectType.findByTag(this._tag);
+            this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
             return;
         }
 
         // Parse the tag and then remove it from element contents.
         this._tag = contents.substring(0, tagEndIndex);
+        this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
         contents = contents.substring(tagEndIndex + 1);
 
         let properties: string[] = contents.split("\" ");

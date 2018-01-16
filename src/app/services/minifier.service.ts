@@ -41,12 +41,15 @@ export class MinifierService {
 
         // Shorten color hex codes (ie #DDFF00 --> #DF0).
         this._shortenHexCodes(propertiesFlatMap);
+
+        // Ungroup groups
+        this._explodeGroups(parsed);
         
-        // parsed.printContents();
+        parsed.printContents();
 
         return this._svgWriter.writeAsString(parsed);
 
-        // TODO Remove groups with no properties.
+        // TODO Remove "px".
 
     }
 
@@ -123,9 +126,6 @@ export class MinifierService {
 
         // Replace the IDs with the minified versions.
         this._replaceIdReferences(propertiesFlatMap, map);
-
-        console.log(map);
-
     }
 
     /** Helper function for _idSubstitution(). */
@@ -274,7 +274,23 @@ export class MinifierService {
 
     /** Ungroups the groups that have no special properties. */
     private _explodeGroups(svgObject: SvgObject): void {
-
+        let children: SvgObject[] = svgObject.children;
+        let newChildren: SvgObject[] = [];
+        let changed: boolean = false;
+        for (let child of children) {
+            this._explodeGroups(child);
+            if (child.type == SvgObjectType.Group && !Object.keys(child.properties).length) {
+                newChildren.push(...child.children);
+                changed = true;
+            }
+            else {
+                newChildren.push(child);
+            }
+        }
+        if (changed) {
+            children.splice(0, children.length);
+            children.push(...newChildren);
+        }
     }
 
 }
