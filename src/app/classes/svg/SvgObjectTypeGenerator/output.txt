@@ -1,0 +1,35 @@
+/** clipPath */
+static readonly ClipPath: SvgObjectType = {
+    tag: "clipPath"
+}
+
+/** defs */
+static readonly Definitions: SvgObjectType = {
+    tag: "defs"
+}
+
+/** g */
+static readonly Group: SvgObjectType = {
+    tag: "g"
+}
+
+/** path */
+static readonly Path: SvgObjectType = {
+    tag: "path"
+}
+
+/** rect */
+static readonly Rectangle: SvgObjectType = {
+    tag: "rect"
+}
+
+/** svg */
+static readonly Svg: SvgObjectType = {
+    tag: "svg"
+}
+
+/** use */
+static readonly Use: SvgObjectType = {
+    tag: "use"
+}
+

@@ -1,8 +1,16 @@
 import { Injectable } from "@angular/core";
+import { SvgObject } from "../classes/svg/svg-object.class";
+import { SvgParserService } from "./svg-parser.service";
+import { SvgWriterService } from "./svg-writer.service";
+import { SvgObjectType } from "../classes/svg/svg-object-type.class";
 
 
 @Injectable()
 export class MinifierService {
+
+    constructor(private _svgParser: SvgParserService, private _svgWriter: SvgWriterService) {
+
+    }
 
     minify(data: string): string {
         
@@ -12,15 +20,65 @@ export class MinifierService {
         // Remove whitespace between consecutive closing and opening tags.
         // This is typically not needed if the file was saved directly from Illustrator.
         result = result.replace(/\>\s+\</g,"><");
+        
+        // Data can now be parsed once all the unnecessary whitespaces have been removed.
+        let parsed: SvgObject = this._svgParser.parse(result);
+
+        // Gather the defs elements and move it to the top of the SVG.
+        let defs: SvgObject = this._gatherDefs(parsed);
+        if (defs) {
+            parsed.children.unshift(defs);
+        }
+
+        parsed.printContents();
+
+        return this._svgWriter.writeAsString(parsed);
 
         // Remove all comments, doctype declarations, and xml declarations.
-        result = this._removeComments(result);
+        //result = this._removeComments(result);
 
         // Shorten color hex codes (ie #DDFF00 --> #DF0).
-        return this._shortenHexCodes(result);
+        //return this._shortenHexCodes(result);
 
         // TODO Remove empty groups.
 
+    }
+
+    /**
+     * Removes any definition elements that are children of the given element,
+     * and then returns an element containing the removed elements.
+     * Operation also applies to nested child elements.
+     */
+    private _gatherDefs(svgObject: SvgObject): SvgObject {
+        let defs: SvgObject[] = this._gatherDefsHelper(svgObject);
+
+        // Consolidate results into the first def element.
+        if (defs.length) {
+            let result: SvgObject = defs[0];
+            for (let i = 1; i < defs.length; i++) {
+                result.children.push(...defs[i].children);
+            }
+            return result;
+        }
+
+        return null;
+    }
+
+    private _gatherDefsHelper(svgObject: SvgObject): SvgObject[] {
+        let defs: SvgObject[] = [];
+        let children: SvgObject[] = svgObject.children;
+        
+        // Gather defs from children of the given SVG element.
+        children.slice(0).forEach(child => {
+            if (child.type == SvgObjectType.Definitions) {
+                defs.push(...children.splice(children.indexOf(child), 1));
+            }
+            else {
+                defs.push(...this._gatherDefsHelper(child));
+            }
+        });
+
+        return defs;
     }
 
     /**

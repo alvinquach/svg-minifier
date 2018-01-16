@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { MinifierService } from './services/minifier/minifier.service';
+import { MinifierService } from './services/minifier.service';
 
 @Component({
     selector: 'app-root',
