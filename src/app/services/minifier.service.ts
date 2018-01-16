@@ -15,14 +15,17 @@ export class MinifierService {
     minify(data: string): string {
         
         // Remove all tabs and line breaks.
-        let result: string = data.replace(/\r?\n|\r|\t/g,"");
+        let result: string = data.replace(/\r?\n|\r|\t/g, "");
 
         // Remove whitespace between consecutive closing and opening tags.
         // This is typically not needed if the file was saved directly from Illustrator.
-        result = result.replace(/\>\s+\</g,"><");
+        result = result.replace(/\>\s+\</g, "><");
         
         // Data can now be parsed once all the unnecessary whitespaces have been removed.
         let parsed: SvgObject = this._svgParser.parse(result);
+
+        // Remove elements that will not be displayed in GT Sport.
+        this._removeNoDisplay(parsed);
 
         // Gather the defs elements and move it to the top of the SVG.
         let defs: SvgObject = this._gatherDefs(parsed);
@@ -45,6 +48,22 @@ export class MinifierService {
 
         // TODO Remove groups with no properties.
 
+    }
+
+    /**
+     * Remove groups and other elements that have display property "none".
+     * Also removes elements that can't be displayed by GT Sport, such as embedded images.
+     */
+    private _removeNoDisplay(svgObject: SvgObject): void {
+        svgObject.children.forEach((child, index, children) => {
+            let remove: boolean =
+                child.properties["display"] == "none" ||
+                child.type == SvgObjectType.Image;
+                // TODO Add other element types that are not supported by GT Sport.
+            if (remove) {
+                children.splice(index, 1);
+            }
+        });
     }
 
     /**
@@ -248,10 +267,14 @@ export class MinifierService {
             return !!value.match(/#[0-9a-fA-F]{3}/).length;
         }
         else if (value.length == 7) {
-            console.log(value)
             return !!value.match(/#[0-9a-fA-F]{6}/).length;            
         }
         return false;
+    }
+
+    /** Ungroups the groups that have no special properties. */
+    private _explodeGroups(svgObject: SvgObject): void {
+
     }
 
 }

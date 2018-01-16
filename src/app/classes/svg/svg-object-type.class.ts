@@ -15,6 +15,11 @@ export class SvgObjectType {
         tag: "g"
     }
 
+    /** image */
+    static readonly Image: SvgObjectType = {
+        tag: "image"
+    }
+
     /** path */
     static readonly Path: SvgObjectType = {
         tag: "path"
