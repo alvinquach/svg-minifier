@@ -1,6 +1,6 @@
 import { AppPage } from './app.po';
 
-describe('svg-simplifier App', () => {
+describe('svg-minifier App', () => {
   let page: AppPage;
 
   beforeEach(() => {

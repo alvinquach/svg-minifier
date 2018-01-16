@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
-import { SimplifierService } from './services/simplifier/simplifier.service';
+import { MinifierService } from './services/minifier/minifier.service';
 
 
 @NgModule({
@@ -11,7 +11,7 @@ import { SimplifierService } from './services/simplifier/simplifier.service';
   imports: [
     BrowserModule
   ],
-  providers: [SimplifierService],
+  providers: [MinifierService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

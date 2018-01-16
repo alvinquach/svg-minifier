@@ -2,9 +2,9 @@ import { Injectable } from "@angular/core";
 
 
 @Injectable()
-export class SimplifierService {
+export class MinifierService {
 
-    simplify(data: string): string {
+    minify(data: string): string {
         
         // Remove all tabs and line breaks.
         let result: string = data.replace(/\r?\n|\r|\t/g,"");

@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { SimplifierService } from './services/simplifier/simplifier.service';
+import { MinifierService } from './services/minifier/minifier.service';
 
 @Component({
     selector: 'app-root',
@@ -14,7 +14,7 @@ export class AppComponent {
 
     private _processedContents: string;
 
-    constructor(private _simplifierService: SimplifierService) {
+    constructor(private _minifierService: MinifierService) {
 
     }
 
@@ -33,7 +33,7 @@ export class AppComponent {
             let reader: FileReader = new FileReader();
             reader.onload = (event: ProgressEvent) => {
                 this._fileContents = (<FileReader>event.target).result;
-                this._processedContents = this._simplifierService.simplify(this.fileContents);
+                this._processedContents = this._minifierService.minify(this.fileContents);
             }
             reader.readAsText(files[0]);
         }
