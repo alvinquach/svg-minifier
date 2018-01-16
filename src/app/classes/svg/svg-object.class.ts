@@ -62,22 +62,6 @@ export class SvgObject {
         return this._children;
     }
 
-    /**
-     * Removes any definition elements that are children of
-     * this element, and then returns the removed elements.
-     * Operation also applies to children elements.
-     */
-    popDefs(): SvgObject[] {
-        let result: SvgObject[] = [];
-        this._children
-            .filter(o => o.type == SvgObjectType.Definitions)
-            .forEach(o => {
-                let child: SvgObject = this._children.splice(this._children.indexOf(o), 1)[0];
-                result.push(child, ...child.popDefs());
-            });
-        return result;
-    }
-
     // Prints the contents of this SVG element to the console.
     printContents(): void {
         console.log(this._generateSimplifiedNode());
@@ -120,7 +104,7 @@ export class SvgObject {
             if (separatorIndex < 0) {
                 continue;
             }
-            let key: string = property.substring(0, separatorIndex);
+            let key: string = property.substring(0, separatorIndex).trim();
             let value: string = property.substring(separatorIndex + 2);
             this._properties[key] = value;
         }

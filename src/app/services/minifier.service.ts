@@ -30,17 +30,20 @@ export class MinifierService {
             parsed.children.unshift(defs);
         }
 
-        parsed.printContents();
+        // Collect the properties from all the SVG elements;
+        let propertiesFlatMap: {[key: string]: string}[] = this._getPropertiesFlatMap(parsed);
+
+        // Replace IDs and references with minified versions.
+        this._idSubstitution(propertiesFlatMap);
+
+        // Shorten color hex codes (ie #DDFF00 --> #DF0).
+        this._shortenHexCodes(propertiesFlatMap);
+        
+        // parsed.printContents();
 
         return this._svgWriter.writeAsString(parsed);
 
-        // Remove all comments, doctype declarations, and xml declarations.
-        //result = this._removeComments(result);
-
-        // Shorten color hex codes (ie #DDFF00 --> #DF0).
-        //return this._shortenHexCodes(result);
-
-        // TODO Remove empty groups.
+        // TODO Remove groups with no properties.
 
     }
 
@@ -81,46 +84,184 @@ export class MinifierService {
         return defs;
     }
 
-    /**
-     * Remove all comments, doctype declarations, and xml declarations.
-     * Input string should have no white spaces between consecutive closing and opening tags.
-     */
-    private _removeComments(data: string): string {
-
-        let segments: string[] = data.split("><");
-
-        // Using indexOf() here for fastest performance https://jsperf.com/charat-vs-indexof-vs-startswith.
-        segments = segments.filter(s => s.indexOf("!") != 0);
-
-        // Remove first segment if it is the xml declarator.
-        console.log(segments[0].trim().indexOf("<?"));
-        if (segments[0].trim().indexOf("<?") == 0) {
-            segments = segments.slice(1); // Truncate the first element.
-            segments[0] = "<" + segments[0]; // Add the opening tag to the new first element.
+    private _getPropertiesFlatMap(svgObject: SvgObject): {[key: string]: string}[] {
+        let result: {[key: string]: string}[] = [];
+        result.push(svgObject.properties)
+        for (let child of svgObject.children) {
+            result.push(...this._getPropertiesFlatMap(child));
         }
+        return result;
+    }
 
-        return segments.join("><");
+    private _idSubstitution(propertiesFlatMap: {[key: string]: string}[]): void {
+        let map: {[key: string]: IdProperties} = {};
+        
+        // Find all IDs and references
+        this._findIdReferences(propertiesFlatMap, map);
+
+        // Generate minified replacement values for the IDs.
+        this._generateReplacementIds(map);
+
+        // Replace the IDs with the minified versions.
+        this._replaceIdReferences(propertiesFlatMap, map);
+
+        console.log(map);
 
     }
 
+    /** Helper function for _idSubstitution(). */
+    private _parseReference(value: string): string {
+        let hashIndex: number = value.indexOf("#");
+        if (hashIndex > -1) {
+            if (!hashIndex && !this._isHexColor(value)) {
+                return value.substring(1);
+            }
+            else if (hashIndex > 0 && !value.indexOf("url(#")) {
+                return value.substring(5, value.length - 1);
+            }
+            // TODO Find other cases where an ID reference can be used.
+        }
+        return null;
+    }
+
+    /** Helper function for _idSubstitution(). */
+    private _findIdReferences(propertiesFlatMap: {[key: string]: string}[], map: {[key: string]: IdProperties}): void {
+        for (let properties of propertiesFlatMap) {
+            for (let key of Object.keys(properties)) {
+                let value: string = properties[key];
+                if (key == "id") {
+                    if (map[value]) {
+                        map[value].defFound = true;
+                    }
+                    else {
+                        map[value] = {
+                            useCount: 0,
+                            defFound: true
+                        }
+                    }
+                }
+                else {
+                    value = this._parseReference(value);
+                    if (value) {
+                        if (map[value]) {
+                            map[value].useCount += 1;
+                        }
+                        else {
+                            map[value] = {
+                                useCount: 1,
+                                defFound: false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** Helper function for _idSubstitution(). */    
+    private _generateReplacementIds(map: {[key: string]: IdProperties}): void {
+        let currentId: number[] = [65];
+
+        let incrementId = (o: number[]) => {
+            if (o[o.length - 1] < 90) {
+                o[o.length - 1] += 1;
+            }
+            else {
+                for (let i = 0; i < o.length; i++) {
+                    o[i] = 65;
+                }
+                o.push(65);
+            }
+        };
+
+        for (let key of Object.keys(map)) {
+            let id: IdProperties = map[key];
+            if (!id.useCount || !id.defFound) {
+                continue;
+            }
+            id.replacement = String.fromCharCode(...currentId);
+            incrementId(currentId);
+        }
+
+    }
+
+    /** Helper function for _idSubstitution(). */
+    private _replaceIdReferences(propertiesFlatMap: {[key: string]: string}[], map: {[key: string]: IdProperties}): void {
+        for (let properties of propertiesFlatMap) {
+            for (let key of Object.keys(properties)) {
+                let value: string = properties[key];
+                if (key == "id") {
+                    let id: IdProperties = map[value];
+                    if (id) {
+                        if (id.replacement) {
+                            properties[key] = id.replacement;
+                        }
+                        else {
+                            delete properties[key];
+                        }
+                    }
+                }
+                else {
+                    value = this._parseReference(value);
+                    if (value) {
+                        let id: IdProperties = map[value];
+                        if (id) {
+                            if (id.replacement) {
+                                properties[key] = id.replacement;
+                            }
+                            else {
+                                delete properties[key];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
-    private _shortenHexCodes(data: string): string {
+    private _shortenHexCodes(propertiesFlatMap: {[key: string]: string}[]): void {
 
-        let result: string = data;
-
-        // Get all hex colors from the document.
-        let hexColors: Set<string> = new Set(result.match(/#[0-9a-f]{6}/gi));
-
-        hexColors.forEach(hex => {
+        let getShortHex = (hex: string) => {
             if (hex.charAt(1) == hex.charAt(2) &&
                 hex.charAt(3) == hex.charAt(4) &&
                 hex.charAt(5) == hex.charAt(6)
             ) {
-                result = result.replace(new RegExp(hex, "gi"), "#" + hex.charAt(1) + hex.charAt(3) + hex.charAt(5));
+                return "#" + hex.charAt(1) + hex.charAt(3) + hex.charAt(5);
             }
-        });
+            return hex;
+        }
 
-        return result;
+        for (let properties of propertiesFlatMap) {
+            for (let key of Object.keys(properties)) {
+                let value: string = properties[key];
+                if (!value.indexOf("#") && this._isHexColor(value, true)) {
+                    properties[key] = getShortHex(value);
+                }
+            }
+        }
+
     }
+
+    private _isHexColor(value: string, ignoreShort: boolean = false): boolean {
+        if (!ignoreShort && value.length == 4) {
+            return !!value.match(/#[0-9a-fA-F]{3}/).length;
+        }
+        else if (value.length == 7) {
+            console.log(value)
+            return !!value.match(/#[0-9a-fA-F]{6}/).length;            
+        }
+        return false;
+    }
+
+}
+
+interface IdProperties {
+
+    replacement?: string;
+
+    defFound: boolean;
+
+    useCount: number;
 
 }
