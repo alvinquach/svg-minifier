@@ -59,11 +59,8 @@ export class MinifierService {
      */
     private _removeNoDisplay(svgObject: SvgObject): void {
         svgObject.children.forEach((child, index, children) => {
-            let remove: boolean =
-                child.properties["display"] == "none" ||
-                child.type == SvgObjectType.Image;
-                // TODO Add other element types that are not supported by GT Sport.
-            if (remove) {
+            // TODO Add other element types that are not supported by GT Sport.
+            if (child.properties["display"] == "none" || !child.type.display) {
                 children.splice(index, 1);
             }
         });
