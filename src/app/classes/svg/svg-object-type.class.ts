@@ -60,6 +60,12 @@ export class SvgObjectType {
         display: true
     }
 
+    /** Default tag for unrecognized tags. */ 
+    static readonly Default: SvgObjectType = { 
+        tag: "default",
+        display: true
+    }; 
+
     private static _tagMap: {[key: string]: SvgObjectType};
 
     readonly tag: string;
