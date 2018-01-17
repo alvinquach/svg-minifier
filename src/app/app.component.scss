@@ -1,0 +1,25 @@
+$toolbar-height: 64px;
+
+.toolbar-container {
+    height: $toolbar-height;
+    width: 100%;
+
+    .toolbar {
+        width: 100%;
+        height: 100%;
+
+        .sidenav-toggle {
+            width: $toolbar-height;
+            text-align: center;
+        }
+    }
+}
+
+.app-contents {
+    height: calc(100vh - #{$toolbar-height});
+    overflow: auto;
+
+    .sidenav-container {
+        height: 100%;
+    }
+}

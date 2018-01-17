@@ -4,20 +4,29 @@ import { AppComponent } from './app.component';
 import { MinifierService } from './services/minifier.service';
 import { SvgParserService } from './services/svg-parser.service';
 import { SvgWriterService } from './services/svg-writer.service';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { FlexLayoutModule } from '@angular/flex-layout';
+import { Routing } from './app.routing';
+import { MaterialModule } from './modules/material.module';
+import { MinifierModule } from './modules/minifier.module';
+import { CommonsModule } from './modules/commons.module';
+import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
   imports: [
-    BrowserModule
+    Routing,
+    CommonsModule,
+    MinifierModule,
+  ],
+  declarations: [
+    AppComponent,
   ],
   providers: [
-    MinifierService,
+    {provide: LocationStrategy, useClass: HashLocationStrategy},
     SvgParserService,
     SvgWriterService
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}
