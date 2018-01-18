@@ -1,21 +1,32 @@
 import { ModuleWithProviders } from "@angular/core";
 import { Route, Routes, RouterModule } from "@angular/router";
 import { SingleMinifierComponent } from "./components/minifier/single/single-minifier.component";
-
-const BaseRoute: Route = {
-    path: '',
-    redirectTo: 'minify',
-    pathMatch: 'full'
-}
-
-const SingleMinifierRoute: Route = {
-    path: 'minify',
-    component: SingleMinifierComponent,
-}
+import { AboutComponent } from "./components/info/about/about.component";
 
 const AppRoutes: Routes = [
-    BaseRoute,
-    SingleMinifierRoute
+    {
+        path: '',
+        redirectTo: 'upload',
+        pathMatch: 'full'
+    },
+    {
+        path: 'upload',
+        component: SingleMinifierComponent,
+    },
+    {
+        path: 'info',
+        children: [
+            {
+                path: '',
+                redirectTo: 'about',
+                pathMatch: 'full'
+            },
+            {
+                path: 'about',
+                component: AboutComponent
+            }
+        ]
+    }
 ];
 
 export const Routing: ModuleWithProviders = RouterModule.forRoot(AppRoutes);

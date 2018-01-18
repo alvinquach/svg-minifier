@@ -5,12 +5,57 @@ $toolbar-height: 64px;
     width: 100%;
 
     .toolbar {
+        flex-direction: row;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;    
         width: 100%;
         height: 100%;
 
         .sidenav-toggle {
             width: $toolbar-height;
             text-align: center;
+
+            @media screen and (min-width: 600px) {
+                display: none;
+            }
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 500;
+            padding: 0 16px;
+        }
+
+        .links-container {
+            flex: 1 1 0;
+            flex-direction: row;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            
+            @media screen and (max-width: 599px) {
+                display: none;
+            }
+            
+            .link {
+                cursor: pointer;
+                padding: 0 16px;
+                outline: none;
+
+                &:hover {
+                    color: rgba(0, 0, 0, 0.38);
+                }
+            }
+
+            .separator {
+                font-size: 20px;
+            }
+
+            .filler {
+                flex: 1 1 0;
+                box-sizing: border-box;
+            }
         }
     }
 }

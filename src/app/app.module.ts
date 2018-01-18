@@ -11,6 +11,7 @@ import { MaterialModule } from './modules/material.module';
 import { MinifierModule } from './modules/minifier.module';
 import { CommonsModule } from './modules/commons.module';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
+import { InfoModule } from './modules/info.module';
 
 
 @NgModule({
@@ -18,6 +19,7 @@ import { LocationStrategy, HashLocationStrategy } from '@angular/common';
     Routing,
     CommonsModule,
     MinifierModule,
+    InfoModule,
   ],
   declarations: [
     AppComponent,

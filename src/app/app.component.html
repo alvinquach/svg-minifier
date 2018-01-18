@@ -1,18 +1,29 @@
 <div class="toolbar-container">
-    <div class="toolbar" fxLayout="row" fxLayoutAlign="start center">
-        <div class="sidenav-toggle" fxShow fxHide.gt-xs>
+    <div class="toolbar">
+        <div class="sidenav-toggle">
             <button mat-icon-button  (click)="sidenav.toggle()">
                 <mat-icon>menu</mat-icon>
             </button>
         </div>
-        <div fxShow fxHide.xs>
-            TEST
+        <div class="logo">
+            SVG-MINIFIER
         </div>
-        <div fxFlex>
-            <!-- Empty -->
-        </div>
-        <div>
-            HELLO
+        <div class="links-container">
+            <div class="link" routerLink="/upload">
+                UPLOAD SVG
+            </div>
+            <div class="separator">
+                |
+            </div>
+            <div class="link">
+                BATCH UPLOAD
+            </div>
+            <div class="filler">
+                <!-- Empty -->
+            </div>
+            <div class="link" routerLink="/info/about">
+                ABOUT
+            </div>
         </div>
     </div>
 </div>
