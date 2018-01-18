@@ -2,7 +2,7 @@ import { Component, ElementRef, ViewChild } from "@angular/core";
 import { MinifierService } from "../../../services/minifier.service";
 
 @Component({
-    selector: 'single-minifier',
+    selector: 'app-single-minifier',
     templateUrl: './single-minifier.component.html',
     // styleUrls: ['./single-minifier.component.scss']
 })
