@@ -128,8 +128,21 @@ export class MinifierService {
     /** Helper function for _idSubstitution(). */
     private _parseReference(value: string): string {
         let hashIndex: number = value.indexOf("#");
+
+        // Function to check whether a string is a hex color code.
+        let isHexColor = (value: string, ignoreShort: boolean = false) => {
+            if (!ignoreShort && value.length == 4) {
+                return !!value.match(/#[0-9a-fA-F]{3}/).length;
+            }
+            else if (value.length == 7) {
+                return !!value.match(/#[0-9a-fA-F]{6}/).length;            
+            }
+            return false;
+        }
+
         if (hashIndex > -1) {
-            if (!hashIndex && !this._isHexColor(value)) {
+            // This assumes IDs cannot be in the form of a hex color code.
+            if (!hashIndex && !isHexColor(value)) {
                 return value.substring(1);
             }
             else if (hashIndex > 0 && !value.indexOf("url(#")) {
@@ -238,6 +251,7 @@ export class MinifierService {
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
     private _shortenHexCodes(propertiesFlatMap: {[key: string]: string}[]): void {
 
+        // Function to tranform eligible hex color codes to shorthand.
         let getShortHex = (hex: string) => {
             if (hex.charAt(1) == hex.charAt(2) &&
                 hex.charAt(3) == hex.charAt(4) &&
@@ -245,28 +259,40 @@ export class MinifierService {
             ) {
                 return "#" + hex.charAt(1) + hex.charAt(3) + hex.charAt(5);
             }
-            return hex;
+            return null; // Returns null if the hex color code could not be shortened.
         }
 
         for (let properties of propertiesFlatMap) {
             for (let key of Object.keys(properties)) {
+
                 let value: string = properties[key];
-                if (!value.indexOf("#") && this._isHexColor(value, true)) {
-                    properties[key] = getShortHex(value);
+                let changed: boolean = false;
+
+                // Find all hex color codes in the value.
+                let hexColors: string[] = value.match(/#[0-9a-f]{6}/gi);
+
+                // Move on if no match.
+                if (!hexColors || !hexColors.length) {
+                    continue;
+                }
+
+                // Replace the hex color codes with the shorthand form, if any.
+                for (let i = 0; i < hexColors.length; i++) {
+                    let hex: string = hexColors[i];
+                    let shortHex: string = getShortHex(hex);
+                    if (shortHex) {
+                        value = value.replace(hex, shortHex);
+                        changed = true;
+                    }
+                }
+
+                // Update the value of the property.
+                if (changed) {
+                    properties[key] = value;
                 }
             }
         }
 
-    }
-
-    private _isHexColor(value: string, ignoreShort: boolean = false): boolean {
-        if (!ignoreShort && value.length == 4) {
-            return !!value.match(/#[0-9a-fA-F]{3}/).length;
-        }
-        else if (value.length == 7) {
-            return !!value.match(/#[0-9a-fA-F]{6}/).length;            
-        }
-        return false;
     }
 
     /** Ungroups the groups that have no special properties. */
