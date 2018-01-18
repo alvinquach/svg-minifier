@@ -4,7 +4,7 @@ import { MinifierService } from "../../../services/minifier.service";
 @Component({
     selector: 'app-single-minifier',
     templateUrl: './single-minifier.component.html',
-    // styleUrls: ['./single-minifier.component.scss']
+    styleUrls: ['./single-minifier.component.scss']
 })
 export class SingleMinifierComponent {
 

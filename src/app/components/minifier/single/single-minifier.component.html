@@ -1,23 +1,25 @@
-<input #fileInput type="file" accept=".svg"/>
-<button (click)="process()">PROCESS</button>
+<div class="upload-container">
+    <input #fileInput type="file" accept=".svg"/>
+    <button (click)="process()">PROCESS</button>
+</div>
 
-<div fxLayout="row">
+<div class="svg-contents-container" fxLayoutWrap>
 
-    <div *ngIf="fileContents" fxFlex="50" style="padding: 8px 16px;">
-        <div style="font-size: 20px; font-weight: bold; padding: 16px 0 8px 0;">
+    <div *ngIf="fileContents" class="svg-content">
+        <div class="header">
             Original: {{fileContents.length}} bytes
         </div>
-        <div style="white-space: pre-wrap;">{{fileContents}}</div>
+        <div class="content">{{fileContents}}</div>
     </div>
     
-    <div *ngIf="results" fxFlex="50" style="padding: 8px 16px;">
-        <div style="font-size: 20px; font-weight: bold; padding: 16px 0 8px 0;">
+    <div *ngIf="results" class="svg-content">
+        <div class="header">
             Simplfied: {{results.length}} bytes
             <button mat-button (click)="copyToClipboard()" color="primary">
                 <mat-icon>content_copy</mat-icon> COPY TO CLIPBOARD
             </button>
         </div>
-        <div #resultsContainer style="white-space: pre-wrap;">{{results}}</div>
+        <div #resultsContainer class="content">{{results}}</div>
     </div>
 
 </div>
