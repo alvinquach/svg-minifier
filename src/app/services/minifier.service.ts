@@ -63,6 +63,7 @@ export class MinifierService {
             if (child.properties["display"] == "none" || !child.type.display) {
                 children.splice(index, 1);
             }
+            this._removeNoDisplay(child);
         });
     }
 
