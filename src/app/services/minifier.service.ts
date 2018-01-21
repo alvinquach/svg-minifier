@@ -42,9 +42,13 @@ export class MinifierService {
         // Shorten color hex codes (ie #DDFF00 --> #DF0).
         this._shortenHexCodes(propertiesFlatMap);
 
+        // Removes properties that have no effect on an element.
+        this._removeUnusedProperties(propertiesFlatMap);
+
         // Ungroup groups
         this._explodeGroups(parsed);
         
+        // Console log
         parsed.printContents();
 
         return this._svgWriter.writeAsString(parsed);
@@ -294,6 +298,19 @@ export class MinifierService {
             }
         }
 
+    }
+
+    /** Removes properties that have no effect on an element. */
+    private _removeUnusedProperties(propertiesFlatMap: {[key: string]: string}[]): void {
+        for (let properties of propertiesFlatMap) {
+            
+            // Remove miterlimit for non-miter linejoins.
+            let strokeLinejoin: string = properties["stroke-linejoin"];
+            if (strokeLinejoin && strokeLinejoin != "miter") {
+                delete properties["stroke-miterlimit"];
+            }
+
+        }
     }
 
     /** Ungroups the groups that have no special properties. */
