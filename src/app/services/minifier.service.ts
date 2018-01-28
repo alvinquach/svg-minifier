@@ -3,6 +3,7 @@ import { SvgObject } from "../classes/svg/svg-object.class";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
 import { SvgObjectType } from "../classes/svg/svg-object-type.class";
+import { StyleUtils } from "../utils/style.utils";
 
 
 @Injectable()
@@ -134,20 +135,10 @@ export class MinifierService {
     private _parseReference(value: string): string {
         let hashIndex: number = value.indexOf("#");
 
-        // Function to check whether a string is a hex color code.
-        let isHexColor = (value: string, ignoreShort: boolean = false) => {
-            if (!ignoreShort && value.length == 4) {
-                return !!value.match(/#[0-9a-fA-F]{3}/).length;
-            }
-            else if (value.length == 7) {
-                return !!value.match(/#[0-9a-fA-F]{6}/).length;            
-            }
-            return false;
-        }
 
         if (hashIndex > -1) {
             // This assumes IDs cannot be in the form of a hex color code.
-            if (!hashIndex && !isHexColor(value)) {
+            if (!hashIndex && !StyleUtils.isHexColor(value)) {
                 return value.substring(1);
             }
             else if (hashIndex > 0 && !value.indexOf("url(#")) {
@@ -256,17 +247,6 @@ export class MinifierService {
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
     private _shortenHexCodes(propertiesFlatMap: {[key: string]: string}[]): void {
 
-        // Function to tranform eligible hex color codes to shorthand.
-        let getShortHex = (hex: string) => {
-            if (hex.charAt(1) == hex.charAt(2) &&
-                hex.charAt(3) == hex.charAt(4) &&
-                hex.charAt(5) == hex.charAt(6)
-            ) {
-                return "#" + hex.charAt(1) + hex.charAt(3) + hex.charAt(5);
-            }
-            return null; // Returns null if the hex color code could not be shortened.
-        }
-
         for (let properties of propertiesFlatMap) {
             for (let key of Object.keys(properties)) {
 
@@ -284,7 +264,7 @@ export class MinifierService {
                 // Replace the hex color codes with the shorthand form, if any.
                 for (let i = 0; i < hexColors.length; i++) {
                     let hex: string = hexColors[i];
-                    let shortHex: string = getShortHex(hex);
+                    let shortHex: string = StyleUtils.hexToShortHex(hex);
                     if (shortHex) {
                         value = value.replace(hex, shortHex);
                         changed = true;
