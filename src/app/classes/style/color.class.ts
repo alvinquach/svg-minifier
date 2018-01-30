@@ -66,10 +66,9 @@ export class Color {
     /**
      * Outputs the color as a hex string.
      * @param allowShort Allows short hex form to be output when possible.
-     * @param includePoundSign Adds the "#" symbol before the hexidecimal string.
      */
-    toHexString(allowShort: boolean = true, includePoundSign: boolean = true): string {
-        let hex = (includePoundSign ? "#" : "")
+    toHexString(allowShort: boolean = true): string {
+        let hex = "#"
             + this._intensityDecimalToInt(this._red).toString(16)
             + this._intensityDecimalToInt(this._green).toString(16)
             + this._intensityDecimalToInt(this._blue).toString(16);
@@ -86,7 +85,7 @@ export class Color {
      * @param includeAlpha If not defined, then the function will only output the alpha value if it is not 1
      *                     If set to true, then the ouput will always be in rgba() format.
      *                     If set to false, then the output will always be in rgb() format.
-     * @param addSpace Adds a space after each comma that separates the color values.
+     * @param addSpace Whether to add a space after each comma that separates the color values.
      */
     toRGBAString(includeAlpha?: boolean, addSpace?: boolean): string {
         if (includeAlpha == undefined && this._alpha < 1) {

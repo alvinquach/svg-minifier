@@ -1,15 +1,15 @@
+import { Color } from "../classes/style/color.class";
+
 /** Utility class for parsing, converting, generating, and performing other operations on CSS related strings. */
 export class ColorUtils {
 
-    /** Converts a hex color code (either in short or long form) into rgb notation. */
-    static hexToRgb(hex: string): string {
-        if (!hex) {
-            return hex;
-        }
-        if (!!hex.match(/#[0-9a-fA-F]{3}/).length) {
-            
-        }
-        return hex;
+    /**
+     * Converts a hex color code (either in short or long form) into rgb notation.
+     * @param hex The hex color code.
+     * @param addSpace Whether to add a space after each comma that separates the color values.
+     */
+    static hexToRgb(hex: string, addSpace?: boolean): string {
+        return new Color().setFromHex(hex).toRGBAString(undefined, addSpace);
     }
 
     /** Checks whether a string is a hex color code. */
