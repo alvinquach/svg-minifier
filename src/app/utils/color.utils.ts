@@ -1,9 +1,15 @@
 /** Utility class for parsing, converting, generating, and performing other operations on CSS related strings. */
-export class StyleUtils {
+export class ColorUtils {
 
     /** Converts a hex color code (either in short or long form) into rgb notation. */
-    static hexToRgb(hex: string) {
-
+    static hexToRgb(hex: string): string {
+        if (!hex) {
+            return hex;
+        }
+        if (!!hex.match(/#[0-9a-fA-F]{3}/).length) {
+            
+        }
+        return hex;
     }
 
     /** Checks whether a string is a hex color code. */

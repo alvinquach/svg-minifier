@@ -3,7 +3,7 @@ import { SvgObject } from "../classes/svg/svg-object.class";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
 import { SvgObjectType } from "../classes/svg/svg-object-type.class";
-import { StyleUtils } from "../utils/style.utils";
+import { ColorUtils } from "../utils/color.utils";
 
 
 @Injectable()
@@ -138,7 +138,7 @@ export class MinifierService {
 
         if (hashIndex > -1) {
             // This assumes IDs cannot be in the form of a hex color code.
-            if (!hashIndex && !StyleUtils.isHexColor(value)) {
+            if (!hashIndex && !ColorUtils.isHexColor(value)) {
                 return value.substring(1);
             }
             else if (hashIndex > 0 && !value.indexOf("url(#")) {
@@ -264,7 +264,7 @@ export class MinifierService {
                 // Replace the hex color codes with the shorthand form, if any.
                 for (let i = 0; i < hexColors.length; i++) {
                     let hex: string = hexColors[i];
-                    let shortHex: string = StyleUtils.hexToShortHex(hex);
+                    let shortHex: string = ColorUtils.hexToShortHex(hex);
                     if (shortHex) {
                         value = value.replace(hex, shortHex);
                         changed = true;
