@@ -13,6 +13,7 @@ export class Color {
         this._alpha = alpha;
     }
 
+    /** Ther intensity of the red component from 0 to 1. */
     get red(): number {
         return this._red;
     }
@@ -21,6 +22,7 @@ export class Color {
         this._red = this._capIntensityValue(red);
     }
 
+    /** Ther intensity of the green component from 0 to 1. */
     get green(): number {
         return this._green;
     }
@@ -29,6 +31,7 @@ export class Color {
         this._green = this._capIntensityValue(green);
     }
 
+    /** Ther intensity of the blue component from 0 to 1. */
     get blue(): number {
         return this._blue;
     }
@@ -37,6 +40,7 @@ export class Color {
         this._blue = this._capIntensityValue(blue);
     }
 
+    /** Ther intensity of the alpha value from 0 to 1. */
     get alpha(): number {
         return this._alpha;
     }
