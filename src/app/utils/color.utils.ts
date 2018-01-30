@@ -1,6 +1,6 @@
 import { Color } from "../classes/style/color.class";
 
-/** Utility class for parsing, converting, generating, and performing other operations on CSS related strings. */
+/** Utility class for parsing, converting, generating, and performing other operations on CSS color strings. */
 export class ColorUtils {
 
     /**
