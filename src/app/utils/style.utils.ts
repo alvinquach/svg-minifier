@@ -1,14 +1,14 @@
 export class StyleUtils {
 
     parseStyle(style: string): {[key: string]: string} {
-        let result: {[key: string]: string} = {};
-        let styles: string[] = style.split(";");
+        const result: {[key: string]: string} = {};
+        const styles: string[] = style.split(";");
         for (let i = 0; i < styles.length; i++) {
-            let _style: string = styles[i].trim();
+            const _style: string = styles[i].trim();
             if (!_style) {
                 continue;
             }
-            let keyValue: string[] = _style.split(":");
+            const keyValue: string[] = _style.split(":");
             if (keyValue.length != 2) {
                 continue;
             }

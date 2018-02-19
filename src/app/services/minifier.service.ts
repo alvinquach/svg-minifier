@@ -25,19 +25,19 @@ export class MinifierService {
         result = result.replace(/\>\s+\</g, "><");
         
         // Data can now be parsed once all the unnecessary whitespaces have been removed.
-        let parsed: SvgObject = this._svgParser.parse(result);
+        const parsed: SvgObject = this._svgParser.parse(result);
 
         // Remove elements that will not be displayed in GT Sport.
         this._removeNoDisplay(parsed);
 
         // Gather the defs elements and move it to the top of the SVG.
-        let defs: SvgObject = this._gatherDefs(parsed);
+        const defs: SvgObject = this._gatherDefs(parsed);
         if (defs) {
             parsed.children.unshift(defs);
         }
 
         // Collect the properties from all the SVG elements;
-        let propertiesFlatMap: {[key: string]: string}[] = this._getPropertiesFlatMap(parsed);
+        const propertiesFlatMap: {[key: string]: string}[] = this._getPropertiesFlatMap(parsed);
 
         // Replace IDs and references with minified versions.
         this._idSubstitution(propertiesFlatMap);
@@ -80,11 +80,11 @@ export class MinifierService {
      * Operation also applies to nested child elements.
      */
     private _gatherDefs(svgObject: SvgObject): SvgObject {
-        let defs: SvgObject[] = this._gatherDefsHelper(svgObject);
+        const defs: SvgObject[] = this._gatherDefsHelper(svgObject);
 
         // Consolidate results into the first def element.
         if (defs.length) {
-            let result: SvgObject = defs[0];
+            const result: SvgObject = defs[0];
             for (let i = 1; i < defs.length; i++) {
                 result.children.push(...defs[i].children);
             }
@@ -95,8 +95,8 @@ export class MinifierService {
     }
 
     private _gatherDefsHelper(svgObject: SvgObject): SvgObject[] {
-        let defs: SvgObject[] = [];
-        let children: SvgObject[] = svgObject.children;
+        const defs: SvgObject[] = [];
+        const children: SvgObject[] = svgObject.children;
         
         // Gather defs from children of the given SVG element.
         children.slice(0).forEach(child => {
@@ -112,16 +112,16 @@ export class MinifierService {
     }
 
     private _getPropertiesFlatMap(svgObject: SvgObject): {[key: string]: string}[] {
-        let result: {[key: string]: string}[] = [];
+        const result: {[key: string]: string}[] = [];
         result.push(svgObject.properties)
-        for (let child of svgObject.children) {
+        for (const child of svgObject.children) {
             result.push(...this._getPropertiesFlatMap(child));
         }
         return result;
     }
 
     private _idSubstitution(propertiesFlatMap: {[key: string]: string}[]): void {
-        let map: {[key: string]: IdProperties} = {};
+        const map: {[key: string]: IdProperties} = {};
         
         // Find all IDs and references
         this._findIdReferences(propertiesFlatMap, map);
@@ -135,7 +135,7 @@ export class MinifierService {
 
     /** Helper function for _idSubstitution(). */
     private _parseReference(value: string): string {
-        let hashIndex: number = value.indexOf("#");
+        const hashIndex: number = value.indexOf("#");
 
 
         if (hashIndex > -1) {
@@ -153,8 +153,8 @@ export class MinifierService {
 
     /** Helper function for _idSubstitution(). */
     private _findIdReferences(propertiesFlatMap: {[key: string]: string}[], map: {[key: string]: IdProperties}): void {
-        for (let properties of propertiesFlatMap) {
-            for (let key of Object.keys(properties)) {
+        for (const properties of propertiesFlatMap) {
+            for (const key of Object.keys(properties)) {
                 let value: string = properties[key];
                 if (key == "id") {
                     if (map[value]) {
@@ -187,9 +187,9 @@ export class MinifierService {
 
     /** Helper function for _idSubstitution(). */    
     private _generateReplacementIds(map: {[key: string]: IdProperties}): void {
-        let currentId: number[] = [65];
+        const currentId: number[] = [65];
 
-        let incrementId = (o: number[]) => {
+        const incrementId = (o: number[]) => {
             if (o[o.length - 1] < 90) {
                 o[o.length - 1] += 1;
             }
@@ -201,8 +201,8 @@ export class MinifierService {
             }
         };
 
-        for (let key of Object.keys(map)) {
-            let id: IdProperties = map[key];
+        for (const key of Object.keys(map)) {
+            const id: IdProperties = map[key];
             if (!id.useCount || !id.defFound) {
                 continue;
             }
@@ -214,11 +214,11 @@ export class MinifierService {
 
     /** Helper function for _idSubstitution(). */
     private _replaceIdReferences(propertiesFlatMap: {[key: string]: string}[], map: {[key: string]: IdProperties}): void {
-        for (let properties of propertiesFlatMap) {
-            for (let key of Object.keys(properties)) {
-                let value: string = properties[key];
+        for (const properties of propertiesFlatMap) {
+            for (const key of Object.keys(properties)) {
+                const value: string = properties[key];
                 if (key == "id") {
-                    let id: IdProperties = map[value];
+                    const id: IdProperties = map[value];
                     if (id) {
                         if (id.replacement) {
                             properties[key] = id.replacement;
@@ -229,9 +229,9 @@ export class MinifierService {
                     }
                 }
                 else {
-                    let oldId: string = this._parseReference(value);
+                    const oldId: string = this._parseReference(value);
                     if (oldId) {
-                        let id: IdProperties = map[oldId];
+                        const id: IdProperties = map[oldId];
                         if (id) {
                             if (id.replacement) {
                                 properties[key] = value.replace(oldId, id.replacement);
@@ -249,14 +249,14 @@ export class MinifierService {
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
     private _shortenHexCodes(propertiesFlatMap: {[key: string]: string}[]): void {
 
-        for (let properties of propertiesFlatMap) {
-            for (let key of Object.keys(properties)) {
+        for (const properties of propertiesFlatMap) {
+            for (const key of Object.keys(properties)) {
 
                 let value: string = properties[key];
                 let changed: boolean = false;
 
                 // Find all hex color codes in the value.
-                let hexColors: string[] = value.match(/#[0-9a-f]{6}/gi);
+                const hexColors: string[] = value.match(/#[0-9a-f]{6}/gi);
 
                 // Move on if no match.
                 if (!hexColors || !hexColors.length) {
@@ -265,8 +265,8 @@ export class MinifierService {
 
                 // Replace the hex color codes with the shorthand form, if any.
                 for (let i = 0; i < hexColors.length; i++) {
-                    let hex: string = hexColors[i];
-                    let shortHex: string = ColorUtils.hexToShortHex(hex);
+                    const hex: string = hexColors[i];
+                    const shortHex: string = ColorUtils.hexToShortHex(hex);
                     if (shortHex) {
                         value = value.replace(hex, shortHex);
                         changed = true;
@@ -284,11 +284,11 @@ export class MinifierService {
 
     /** Removes properties that have no effect on an element. */
     private _removeUnusedProperties(propertiesFlatMap: {[key: string]: string}[]): void {
-        for (let properties of propertiesFlatMap) {
+        for (const properties of propertiesFlatMap) {
             
             // Remove miterlimit for non-miter linejoins.
             // TODO Move this to a service or utility for paths.
-            let strokeLinejoin: string = properties['stroke-linejoin'];
+            const strokeLinejoin: string = properties['stroke-linejoin'];
             if (strokeLinejoin && strokeLinejoin != "miter") {
                 delete properties['stroke-miterlimit'];
             }
@@ -321,10 +321,10 @@ export class MinifierService {
 
     /** Ungroups the groups that have no special properties. */
     private _explodeGroups(svgObject: SvgObject): void {
-        let children: SvgObject[] = svgObject.children;
-        let newChildren: SvgObject[] = [];
+        const children: SvgObject[] = svgObject.children;
+        const newChildren: SvgObject[] = [];
         let changed: boolean = false;
-        for (let child of children) {
+        for (const child of children) {
             this._explodeGroups(child);
             if (child.type == SvgObjectType.Group && !Object.keys(child.properties).length) {
                 newChildren.push(...child.children);

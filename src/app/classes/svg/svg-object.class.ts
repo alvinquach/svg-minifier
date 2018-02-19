@@ -68,7 +68,7 @@ export class SvgObject {
     }
 
     protected _generateSimplifiedNode(): any {
-        let result: any = {
+        const result: any = {
             tag: this._tag,
             properties: this._properties,
             children: this._children.map(c => c._generateSimplifiedNode())
@@ -78,7 +78,7 @@ export class SvgObject {
 
     private _parseProperties(contents: string): void {
 
-        let tagEndIndex: number = contents.indexOf(" ");
+        const tagEndIndex: number = contents.indexOf(" ");
         
         // If there is only the tag in the element contents, then we can stop here.
         if (tagEndIndex < 0) {
@@ -92,21 +92,21 @@ export class SvgObject {
         this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
         contents = contents.substring(tagEndIndex + 1);
 
-        let properties: string[] = contents.split("\" ");
+        const properties: string[] = contents.split("\" ");
 
         // Remove end quote from last property.
-        let lastProperty: string = properties[properties.length - 1];
+        const lastProperty: string = properties[properties.length - 1];
         if (lastProperty.lastIndexOf("\"") == lastProperty.length - 1) {
             properties[properties.length - 1] = lastProperty.substr(0, lastProperty.length - 1);
         }
 
-        for (let property of properties) {
-            let separatorIndex: number = property.indexOf("=\"");
+        for (const property of properties) {
+            const separatorIndex: number = property.indexOf("=\"");
             if (separatorIndex < 0) {
                 continue;
             }
-            let key: string = property.substring(0, separatorIndex).trim();
-            let value: string = property.substring(separatorIndex + 2);
+            const key: string = property.substring(0, separatorIndex).trim();
+            const value: string = property.substring(separatorIndex + 2);
             this._properties[key] = value;
         }
 

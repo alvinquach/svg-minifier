@@ -10,24 +10,24 @@ export class SvgParserService {
 
     parse(svg: string): SvgObject {
 
-        let svgElements: string[] = svg.split("><");
+        const svgElements: string[] = svg.split("><");
 
         if (!svgElements.length) {
             return;
         }
 
         // Remove the opening and closing brackets from the first and last elements, respectively.
-        let firstElement: string = svgElements[0];
+        const firstElement: string = svgElements[0];
         if (firstElement.indexOf("<") == 0) {
             svgElements[0] = firstElement.substring(1);
         }
-        let lastElement: string = svgElements[svgElements.length - 1];
+        const lastElement: string = svgElements[svgElements.length - 1];
         if (lastElement.indexOf(">") == lastElement.length - 1) {
             svgElements[svgElements.length - 1] = lastElement.substr(0, lastElement.length - 1);
         }
 
         // Parse and store the SVG data in the temporary "root" element.
-        let root: SvgObject = new SvgObject("root", svgElements);
+        const root: SvgObject = new SvgObject("root", svgElements);
 
         // If parsed correctly, the "root" element should only contain one child, which is the "svg" element.
         // Use the "svg" element as the root element instead.

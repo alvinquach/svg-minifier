@@ -84,8 +84,8 @@ export class SvgObjectType {
             return;
         }
         this._tagMap = {};
-        for (let key of Object.keys(SvgObjectType)) {
-            let object: any = SvgObjectType[key];
+        for (const key of Object.keys(SvgObjectType)) {
+            const object: any = SvgObjectType[key];
             if (object.tag) {
                 this._tagMap[object.tag] = object;
             }

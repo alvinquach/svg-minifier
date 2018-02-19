@@ -7,8 +7,8 @@ export class SvgWriterService {
     writeAsString(svgObject: SvgObject): string {
         
         // Get the properties and its keys from the SVG element.
-        let properties: {[key: string]: string} = svgObject.properties
-        let propertyKeys: string[] = Object.keys(properties);
+        const properties: {[key: string]: string} = svgObject.properties
+        const propertyKeys: string[] = Object.keys(properties);
 
         // If the SVG element has no properties or children, then it can be ignored.
         if (!propertyKeys.length && !svgObject.children.length) {
@@ -21,14 +21,14 @@ export class SvgWriterService {
         result += "<" + svgObject.tag;
 
         // Write properties, if any.
-        for (let key of propertyKeys) {
+        for (const key of propertyKeys) {
             result += " " + key + "=\"" + properties[key] + "\"";
         }
 
         // Write children, if any.
-        let children: SvgObject[] = svgObject.children;
+        const children: SvgObject[] = svgObject.children;
         let childrenResult: string = "";
-        for (let child of children) {
+        for (const child of children) {
             childrenResult += this.writeAsString(child);
         }
 
