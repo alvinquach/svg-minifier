@@ -9,13 +9,13 @@ export class TransformMatrix {
     private _e: number;
     private _f: number;
 
-    constructor(a: number, b: number, c: number, d: number, e: number, f: number) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
-        this.e = e;
-        this.f = f;
+    constructor(...values: number[]) {
+        this.a = values[0];
+        this.b = values[1];
+        this.c = values[2];
+        this.d = values[3];
+        this.e = values[4];
+        this.f = values[5];
     }
 
     get a(): number {

@@ -4,6 +4,8 @@ import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
 import { SvgObjectType } from "../classes/svg/svg-object-type.class";
 import { ColorUtils } from "../utils/color.utils";
+import { TransformMatrix } from "../classes/matrix/transform-matrix.class";
+import { MathUtils } from "../utils/math.utils";
 
 
 @Injectable()
@@ -285,9 +287,33 @@ export class MinifierService {
         for (let properties of propertiesFlatMap) {
             
             // Remove miterlimit for non-miter linejoins.
-            let strokeLinejoin: string = properties["stroke-linejoin"];
+            // TODO Move this to a service or utility for paths.
+            let strokeLinejoin: string = properties['stroke-linejoin'];
             if (strokeLinejoin && strokeLinejoin != "miter") {
-                delete properties["stroke-miterlimit"];
+                delete properties['stroke-miterlimit'];
+            }
+
+            // FIXME Add check to see if this is really a linearGradient.
+            // Also add sanity checks.
+            //
+            // TODO Move this to a service or utility for linearGradients.
+            const gradientTransform: string = properties['gradientTransform'];
+            if (gradientTransform && 'x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
+                
+                // Assumes that the property starts with "matrix(" and ends with ")".
+                const values: string[] = gradientTransform.substring(7, gradientTransform.length - 1).split(" ");
+                
+                // Assumes that all values are valid numbers.
+                const matrix: TransformMatrix = new TransformMatrix(...values.map(v => Number(v)));
+                const start: number[] = MathUtils.transformPoint(Number(properties['x1']), Number(properties['y1']), matrix.toArray());
+                const end: number[] = MathUtils.transformPoint(Number(properties['x2']), Number(properties['y2']), matrix.toArray());
+
+                // TODO Determine the required precision.
+                properties['x1'] = start[0].toFixed(4);
+                properties['y1'] = start[1].toFixed(4);
+                properties['x2'] = end[0].toFixed(4);
+                properties['y2'] = end[1].toFixed(4);
+                delete properties['gradientTransform'];
             }
 
         }
