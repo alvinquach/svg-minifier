@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { DecimalPipe } from "@angular/common";
 import { SvgObject } from "../classes/svg/svg-object.class";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
@@ -10,6 +11,8 @@ import { MathUtils } from "../utils/math.utils";
 
 @Injectable()
 export class MinifierService {
+
+    private _decimalPipe: DecimalPipe = new DecimalPipe("en-US");
 
     constructor(private _svgParser: SvgParserService, private _svgWriter: SvgWriterService) {
 
@@ -293,27 +296,51 @@ export class MinifierService {
                 delete properties['stroke-miterlimit'];
             }
 
-            // FIXME Add check to see if this is really a linearGradient.
-            // Also add sanity checks.
+            // Applies the gradientTransform matrix to the gradient itself,
+            // since GT Sport does not support tranformation matrices on gradients.
             //
-            // TODO Move this to a service or utility for linearGradients.
-            const gradientTransform: string = properties['gradientTransform'];
-            if (gradientTransform && 'x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
-                
+            // FIXME Add sanity checks.
+            // TODO Move this to a service or utility for gradients.
+            if ('gradientTransform' in properties) {
+                const gradientTransform: string = properties['gradientTransform'];
+
                 // Assumes that the property starts with "matrix(" and ends with ")".
                 const values: string[] = gradientTransform.substring(7, gradientTransform.length - 1).split(" ");
-                
+
                 // Assumes that all values are valid numbers.
                 const matrix: TransformMatrix = new TransformMatrix(...values.map(v => Number(v)));
-                const start: number[] = MathUtils.transformPoint(Number(properties['x1']), Number(properties['y1']), matrix.toArray());
-                const end: number[] = MathUtils.transformPoint(Number(properties['x2']), Number(properties['y2']), matrix.toArray());
 
-                // TODO Determine the required precision.
-                properties['x1'] = start[0].toFixed(4);
-                properties['y1'] = start[1].toFixed(4);
-                properties['x2'] = end[0].toFixed(4);
-                properties['y2'] = end[1].toFixed(4);
-                delete properties['gradientTransform'];
+                // FIXME The above two opertaion are a waste if the if-statements below all evaluate to false.
+
+                // linearGradient
+                if ('x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
+                    
+                    // Assumes that all values are valid numbers.
+                    const start: number[] = MathUtils.transformPoint(Number(properties['x1']), Number(properties['y1']), matrix.toArray());
+                    const end: number[] = MathUtils.transformPoint(Number(properties['x2']), Number(properties['y2']), matrix.toArray());
+
+                    // TODO Determine the required precision.
+                    properties['x1'] = this._decimalPipe.transform(start[0], "1.0-3");
+                    properties['y1'] = this._decimalPipe.transform(start[1], "1.0-3");
+                    properties['x2'] = this._decimalPipe.transform(end[0], "1.0-3");
+                    properties['y2'] = this._decimalPipe.transform(end[1], "1.0-3");
+                    delete properties['gradientTransform'];
+                }
+
+                // radialGradients
+                else if ('cx' in properties && 'cy' in properties && 'r' in properties) {
+
+                    // Assumes that all values are valid numbers.
+                    const center: number[] = MathUtils.transformPoint(Number(properties['cx']), Number(properties['cy']), matrix.toArray());
+
+                    // TODO Determine the required precision.
+                    properties['cx'] = this._decimalPipe.transform(center[0], "1.0-2");
+                    properties['cy'] = this._decimalPipe.transform(center[1], "1.0-2");
+                    properties['r'] = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r']), undefined, matrix.toArray())[0], "1.0-3");
+                    delete properties['gradientTransform'];
+
+                }
+
             }
 
         }
