@@ -1,12 +1,13 @@
 import { Injectable } from "@angular/core";
 import { DecimalPipe } from "@angular/common";
-import { SvgObject } from "../classes/svg/svg-object.class";
+import { SvgObject } from "../classes/svg/element/svg-element.class";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
-import { SvgObjectType } from "../classes/svg/svg-object-type.class";
+import { SvgObjectType } from "../classes/svg/element/svg-element-type.class";
 import { ColorUtils } from "../utils/color.utils";
 import { TransformMatrix } from "../classes/matrix/transform-matrix.class";
 import { MathUtils } from "../utils/math.utils";
+import { SvgElementProperty } from "../classes/svg/property/svg-element-property.class";
 
 
 @Injectable()
@@ -40,7 +41,7 @@ export class MinifierService {
         }
 
         // Collect the properties from all the SVG elements;
-        const propertiesFlatMap: {[key: string]: string}[] = this._getPropertiesFlatMap(parsed);
+        const propertiesFlatMap: {[key: string]: SvgElementProperty}[] = this._getPropertiesFlatMap(parsed);
 
         // Replace IDs and references with minified versions.
         this._idSubstitution(propertiesFlatMap);
@@ -70,7 +71,8 @@ export class MinifierService {
     private _removeNoDisplay(svgObject: SvgObject): void {
         svgObject.children.forEach((child, index, children) => {
             // TODO Add other element types that are not supported by GT Sport.
-            if (child.properties["display"] == "none" || !child.type.display) {
+            let display: SvgElementProperty = child.properties['display'];
+            if (display && display.value  == "none" || !child.type.display) {
                 children.splice(index, 1);
             }
             this._removeNoDisplay(child);
@@ -114,8 +116,8 @@ export class MinifierService {
         return defs;
     }
 
-    private _getPropertiesFlatMap(svgObject: SvgObject): {[key: string]: string}[] {
-        const result: {[key: string]: string}[] = [];
+    private _getPropertiesFlatMap(svgObject: SvgObject): {[key: string]: SvgElementProperty}[] {
+        const result: {[key: string]: SvgElementProperty}[] = [];
         result.push(svgObject.properties)
         for (const child of svgObject.children) {
             result.push(...this._getPropertiesFlatMap(child));
@@ -123,7 +125,7 @@ export class MinifierService {
         return result;
     }
 
-    private _idSubstitution(propertiesFlatMap: {[key: string]: string}[]): void {
+    private _idSubstitution(propertiesFlatMap: {[key: string]: SvgElementProperty}[]): void {
         const map: {[key: string]: IdProperties} = {};
         
         // Find all IDs and references
@@ -140,7 +142,6 @@ export class MinifierService {
     private _parseReference(value: string): string {
         const hashIndex: number = value.indexOf("#");
 
-
         if (hashIndex > -1) {
             // This assumes IDs cannot be in the form of a hex color code.
             if (!hashIndex && !ColorUtils.isHexColor(value)) {
@@ -155,10 +156,10 @@ export class MinifierService {
     }
 
     /** Helper function for _idSubstitution(). */
-    private _findIdReferences(propertiesFlatMap: {[key: string]: string}[], map: {[key: string]: IdProperties}): void {
+    private _findIdReferences(propertiesFlatMap: {[key: string]: SvgElementProperty}[], map: {[key: string]: IdProperties}): void {
         for (const properties of propertiesFlatMap) {
-            for (const key of Object.keys(properties)) {
-                let value: string = properties[key];
+            for (const key in properties) {
+                let value: string = properties[key].value;
                 if (key == "id") {
                     if (map[value]) {
                         map[value].defFound = true;
@@ -216,15 +217,15 @@ export class MinifierService {
     }
 
     /** Helper function for _idSubstitution(). */
-    private _replaceIdReferences(propertiesFlatMap: {[key: string]: string}[], map: {[key: string]: IdProperties}): void {
+    private _replaceIdReferences(propertiesFlatMap: {[key: string]: SvgElementProperty}[], map: {[key: string]: IdProperties}): void {
         for (const properties of propertiesFlatMap) {
-            for (const key of Object.keys(properties)) {
-                const value: string = properties[key];
+            for (const key in properties) {
+                const value: string = properties[key].value;
                 if (key == "id") {
                     const id: IdProperties = map[value];
                     if (id) {
                         if (id.replacement) {
-                            properties[key] = id.replacement;
+                            properties[key].value = id.replacement;
                         }
                         else {
                             delete properties[key];
@@ -237,7 +238,7 @@ export class MinifierService {
                         const id: IdProperties = map[oldId];
                         if (id) {
                             if (id.replacement) {
-                                properties[key] = value.replace(oldId, id.replacement);
+                                properties[key].value = value.replace(oldId, id.replacement);
                             }
                             else {
                                 delete properties[key];
@@ -250,12 +251,12 @@ export class MinifierService {
     }
 
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
-    private _shortenHexCodes(propertiesFlatMap: {[key: string]: string}[]): void {
+    private _shortenHexCodes(propertiesFlatMap: {[key: string]: SvgElementProperty}[]): void {
 
         for (const properties of propertiesFlatMap) {
-            for (const key of Object.keys(properties)) {
+            for (const key in properties) {
 
-                let value: string = properties[key];
+                let value: string = properties[key].value;
                 let changed: boolean = false;
 
                 // Find all hex color codes in the value.
@@ -278,7 +279,7 @@ export class MinifierService {
 
                 // Update the value of the property.
                 if (changed) {
-                    properties[key] = value;
+                    properties[key].value = value;
                 }
             }
         }
@@ -286,13 +287,13 @@ export class MinifierService {
     }
 
     /** Removes properties that have no effect on an element. */
-    private _removeUnusedProperties(propertiesFlatMap: {[key: string]: string}[]): void {
+    private _removeUnusedProperties(propertiesFlatMap: {[key: string]: SvgElementProperty}[]): void {
         for (const properties of propertiesFlatMap) {
             
             // Remove miterlimit for non-miter linejoins.
             // TODO Move this to a service or utility for paths.
-            const strokeLinejoin: string = properties['stroke-linejoin'];
-            if (strokeLinejoin && strokeLinejoin != "miter") {
+            const strokeLinejoin: SvgElementProperty = properties['stroke-linejoin'];
+            if (strokeLinejoin && strokeLinejoin.value != "miter") {
                 delete properties['stroke-miterlimit'];
             }
 
@@ -302,7 +303,7 @@ export class MinifierService {
             // FIXME Add sanity checks.
             // TODO Move this to a service or utility for gradients.
             if ('gradientTransform' in properties) {
-                const gradientTransform: string = properties['gradientTransform'];
+                const gradientTransform: string = properties['gradientTransform'].value;
 
                 // Assumes that the property starts with "matrix(" and ends with ")".
                 const values: string[] = gradientTransform.substring(7, gradientTransform.length - 1).split(" ");
@@ -316,14 +317,14 @@ export class MinifierService {
                 if ('x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
                     
                     // Assumes that all values are valid numbers.
-                    const start: number[] = MathUtils.transformPoint(Number(properties['x1']), Number(properties['y1']), matrix.toArray());
-                    const end: number[] = MathUtils.transformPoint(Number(properties['x2']), Number(properties['y2']), matrix.toArray());
+                    const start: number[] = MathUtils.transformPoint(Number(properties['x1'].value), Number(properties['y1'].value), matrix.toArray());
+                    const end: number[] = MathUtils.transformPoint(Number(properties['x2'].value), Number(properties['y2'].value), matrix.toArray());
 
                     // TODO Determine the required precision.
-                    properties['x1'] = this._decimalPipe.transform(start[0], "1.0-3");
-                    properties['y1'] = this._decimalPipe.transform(start[1], "1.0-3");
-                    properties['x2'] = this._decimalPipe.transform(end[0], "1.0-3");
-                    properties['y2'] = this._decimalPipe.transform(end[1], "1.0-3");
+                    properties['x1'].value = this._decimalPipe.transform(start[0], "1.0-3");
+                    properties['y1'].value = this._decimalPipe.transform(start[1], "1.0-3");
+                    properties['x2'].value = this._decimalPipe.transform(end[0], "1.0-3");
+                    properties['y2'].value = this._decimalPipe.transform(end[1], "1.0-3");
                     delete properties['gradientTransform'];
                 }
 
@@ -331,12 +332,12 @@ export class MinifierService {
                 else if ('cx' in properties && 'cy' in properties && 'r' in properties) {
 
                     // Assumes that all values are valid numbers.
-                    const center: number[] = MathUtils.transformPoint(Number(properties['cx']), Number(properties['cy']), matrix.toArray());
+                    const center: number[] = MathUtils.transformPoint(Number(properties['cx'].value), Number(properties['cy'].value), matrix.toArray());
 
                     // TODO Determine the required precision.
-                    properties['cx'] = this._decimalPipe.transform(center[0], "1.0-2");
-                    properties['cy'] = this._decimalPipe.transform(center[1], "1.0-2");
-                    properties['r'] = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r']), undefined, matrix.toArray())[0], "1.0-3");
+                    properties['cx'].value = this._decimalPipe.transform(center[0], "1.0-2");
+                    properties['cy'].value = this._decimalPipe.transform(center[1], "1.0-2");
+                    properties['r'].value = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r'].value), undefined, matrix.toArray())[0], "1.0-3");
                     delete properties['gradientTransform'];
 
                 }
