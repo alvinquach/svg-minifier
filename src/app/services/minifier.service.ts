@@ -69,14 +69,17 @@ export class MinifierService {
      * Also removes elements that can't be displayed by GT Sport, such as embedded images.
      */
     private _removeNoDisplay(svgObject: SvgObject): void {
-        svgObject.children.forEach((child, index, children) => {
+        const children = svgObject.children;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
             // TODO Add other element types that are not supported by GT Sport.
-            let display: SvgElementProperty = child.properties['display'];
+            const display: SvgElementProperty = child.properties['display'];
             if (display && display.value  == "none" || !child.type.display) {
-                children.splice(index, 1);
+                children.splice(i, 1);
+                i--;
             }
             this._removeNoDisplay(child);
-        });
+        }
     }
 
     /**

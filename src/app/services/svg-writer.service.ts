@@ -7,7 +7,7 @@ export class SvgWriterService {
 
     writeAsString(svgObject: SvgObject): string {
 
-        console.log(svgObject)
+        // console.log(svgObject)
         
         // Get the properties and its keys from the SVG element.
         const properties: {[key: string]: SvgElementProperty} = svgObject.properties
