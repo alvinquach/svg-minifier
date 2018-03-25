@@ -75,10 +75,12 @@ export class MinifierService {
             // TODO Add other element types that are not supported by GT Sport.
             const display: SvgElementProperty = child.properties['display'];
             if (display && display.value  == "none" || !child.type.display) {
-                children.splice(i, 1);
-                i--;
+                children.splice(i--, 1);
+                continue;
             }
-            this._removeNoDisplay(child);
+            if (child.children.length) {
+                this._removeNoDisplay(child);
+            }
         }
     }
 
