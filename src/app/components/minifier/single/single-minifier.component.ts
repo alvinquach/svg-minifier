@@ -1,24 +1,32 @@
-import { Component, ElementRef, ViewChild } from "@angular/core";
+import { Component, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
 import { MinifierService } from "../../../services/minifier.service";
+import { SvgOutputOptions } from "../../../classes/svg/options/svg-output-options.class";
 
 @Component({
     selector: 'app-single-minifier',
     templateUrl: './single-minifier.component.html',
     styleUrls: ['./single-minifier.component.scss']
 })
-export class SingleMinifierComponent {
+export class SingleMinifierComponent implements AfterViewInit {
 
     @ViewChild('fileInput') fileInput: ElementRef;
 
     @ViewChild('resultsContainer') resultsContainer: ElementRef;
     
+    private _svgOutputOptions: SvgOutputOptions = new SvgOutputOptions();
 
     private _fileContents: string;
 
     private _results: string;
 
-    constructor(private _minifierService: MinifierService) {
+    private _inputEl: HTMLInputElement;
 
+    constructor(private _cd: ChangeDetectorRef, private _minifierService: MinifierService) {
+
+    }
+
+    get svgOutputOptions(): SvgOutputOptions {
+        return this._svgOutputOptions;
     }
 
     get fileContents(): string {
@@ -29,14 +37,25 @@ export class SingleMinifierComponent {
         return this._results;
     }
 
+    ngAfterViewInit(): void {
+        this._inputEl = this.fileInput.nativeElement;
+    }
+
+    markForCheck() {
+        this._cd.markForCheck();
+    }
+
+    hasFiles(): boolean {
+        return this._inputEl && !!this._inputEl.files.length;
+    }
+
     process() {
-        const inputEl: HTMLInputElement = this.fileInput.nativeElement;
-        const files: FileList = inputEl.files;
+        const files: FileList = this._inputEl.files;
         if (files.length) {
             const reader: FileReader = new FileReader();
             reader.onload = (event: ProgressEvent) => {
                 this._fileContents = (<FileReader>event.target).result;
-                this._results = this._minifierService.minify(this.fileContents);
+                this._results = this._minifierService.minify(this.fileContents, this._svgOutputOptions);
             }
             reader.readAsText(files[0]);
         }

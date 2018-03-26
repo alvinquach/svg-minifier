@@ -1,6 +1,10 @@
 <div class="upload-container">
-    <input #fileInput type="file" accept=".svg"/>
-    <button (click)="process()">PROCESS</button>
+    <input #fileInput type="file" accept=".svg" (change)="markForCheck()"/>
+</div>
+
+<div class="process-options">
+    <mat-checkbox [(ngModel)]="svgOutputOptions.indent">Output indents and line breaks</mat-checkbox>
+    <button mat-raised-button (click)="process()" color="accent" [disabled]="!hasFiles()">MINIFY</button>    
 </div>
 
 <div class="svg-contents-container" fxLayoutWrap>

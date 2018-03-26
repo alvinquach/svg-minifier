@@ -4,6 +4,14 @@
     padding: 16px;
 }
 
+.process-options {
+    text-align: center;
+
+    button {
+        margin-left: 16px;
+    }
+}
+
 .svg-contents-container {
     flex-direction: row;
     box-sizing: border-box;

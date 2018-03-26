@@ -8,6 +8,7 @@ import { ColorUtils } from "../utils/color.utils";
 import { TransformMatrix } from "../classes/matrix/transform-matrix.class";
 import { MathUtils } from "../utils/math.utils";
 import { SvgElementProperty } from "../classes/svg/property/svg-element-property.class";
+import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
 
 
 @Injectable()
@@ -19,7 +20,7 @@ export class MinifierService {
 
     }
 
-    minify(data: string): string {
+    minify(data: string, svgOutputOptions?: SvgOutputOptions): string {
         
         // Remove all tabs and line breaks.
         let result: string = data.replace(/\r?\n|\r|\t/g, "");
@@ -58,7 +59,7 @@ export class MinifierService {
         // Console log
         parsed.printContents();
 
-        return this._svgWriter.writeAsString(parsed);
+        return this._svgWriter.writeAsString(parsed, svgOutputOptions && svgOutputOptions.indent ? "\t" : undefined);
 
         // TODO Remove "px".
 
