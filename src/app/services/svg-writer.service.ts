@@ -5,7 +5,7 @@ import { SvgElementProperty } from "../classes/svg/property/svg-element-property
 @Injectable()
 export class SvgWriterService {
 
-    writeAsString(svgObject: SvgObject): string {
+    writeAsString(svgObject: SvgObject, indent?: string, level: number = 0): string {
 
         // console.log(svgObject)
         
@@ -20,7 +20,7 @@ export class SvgWriterService {
         let result: string = "";
 
         // Write opening tag.
-        result += "<" + svgObject.tag;
+        result += this.generateIndent(level, indent) + "<" + svgObject.tag;
 
         // Write properties, if any.
         for (const key in properties) {
@@ -29,15 +29,20 @@ export class SvgWriterService {
 
         // Write children, if any.
         const children: SvgObject[] = svgObject.children;
-        let childrenResult: string = "";
+        let childrenResult: string[] = [];
         for (const child of children) {
-            childrenResult += this.writeAsString(child);
+            childrenResult.push(this.writeAsString(child, indent, level + 1));
         }
 
         // Write closing tag. We check using the string generated from the children
         // just in case the children had all empty tags, and thus an empty string.
         if (childrenResult.length) {
-            result += ">" + childrenResult + "</" + svgObject.tag + ">";
+            if (indent === undefined) {
+                result += ">" + childrenResult.join("") + "</" + svgObject.tag + ">";
+            }
+            else {
+                result += ">\n" + childrenResult.join("\n") + "\n" + this.generateIndent(level, indent) + "</" + svgObject.tag + ">"
+            }
         }
         else {
             result += "/>";
@@ -45,6 +50,16 @@ export class SvgWriterService {
 
         return result;
 
+    }
+
+    private generateIndent(level: number, indent?: string): string {
+        let result: string = "";
+        if (indent !== undefined) {
+            for (let i = 0; i < level; i++) {
+                result += indent;
+            }
+        }
+        return result;
     }
 
 }

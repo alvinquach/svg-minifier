@@ -60,6 +60,12 @@ export class SvgObjectType {
         display: true
     }
 
+    /** Inner contents of an element. Not an actual element. */ 
+    static readonly ElementInnerContent: SvgObjectType = { 
+        tag: null,
+        display: false
+    }; 
+
     /** Default tag for unrecognized tags. */ 
     static readonly Default: SvgObjectType = { 
         tag: "default",

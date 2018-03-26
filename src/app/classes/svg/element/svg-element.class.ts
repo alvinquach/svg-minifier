@@ -12,38 +12,44 @@ export class SvgObject {
 
     private _children: SvgObject[] = [];
 
-    constructor(contents: string, nextElements: string[]) {
+    constructor(segment: string, nextSegments: string[]) {
 
         let hasChildren = true;
 
         // Determine whether this SVG element has any children elements.
-        if (contents.lastIndexOf("/") == contents.length - 1) {
-            contents = contents.substr(0, contents.length - 1);
+        if (!segment.indexOf(">") || segment.lastIndexOf("/") == segment.length - 1) {
+            segment = segment.substr(0, segment.length - 1);
             hasChildren = false;
         }
 
-        this._parseProperties(contents);
+        this._parseProperties(segment);
 
         while (hasChildren) {
             
             // Stop if there are no more elements.
-            if (!nextElements.length) {
+            if (!nextSegments.length) {
                 break;
             }
 
+            const nextSegment: string = nextSegments.shift();
+
+            // Each segment `should` start with either a '>' or a '<'.
+            // We can ignore segments that are a single '>' character.
+            if (nextSegment == ">") {
+                continue;
+            }
+
             // Skip over xml declarators, DOCTYPE declarators, and comments.
-            if (!nextElements[0].indexOf("?") || !nextElements[0].indexOf("!")) {
-                nextElements.shift();
+            if (!nextSegment.indexOf("<?") || !nextSegment.indexOf("<!")) {
                 continue;
             }
 
             // If the next element is a closing tag for this element, then we can stop here.
-            if (!nextElements[0].indexOf("/") && nextElements[0].substring(1) == this._tag) {
-                nextElements.shift();
+            if (!nextSegment.indexOf("</") && nextSegment.substring(2) == this._tag) {
                 break;
             }
 
-            this._children.push(new SvgObject(nextElements.shift(), nextElements));
+            this._children.push(new SvgObject(nextSegment, nextSegments));
         }
     }
     
@@ -63,7 +69,7 @@ export class SvgObject {
         return this._children;
     }
 
-    // Prints the contents of this SVG element to the console.
+    // Prints the contents of this SVG code segment to the console.
     printContents(): void {
         console.log(this._generateSimplifiedNode());
     }
@@ -77,23 +83,46 @@ export class SvgObject {
         return result;
     }
 
-    private _parseProperties(contents: string): void {
+    private _parseProperties(segment: string): void {
 
-        const tagEndIndex: number = contents.indexOf(" ");
+        // Check if the segment starts with '>'.
+        if (!segment.indexOf('>')) {
+
+            // If the segment starts with a '>' and is not a single character, 
+            // then it is part of the inner contents of the SVG element.
+            if (segment.length > 1) {
+                this._tag = null;
+                this._type = SvgObjectType.ElementInnerContent;
+                this._properties['content'] = new SvgElementProperty(segment.substring(1));
+            }
+
+            // Return here regardless of the segment length.
+            // If the segment was a single '<', then nothing was done,
+            // but this should not be possible, as such segments should
+            // have been filtered out prior to calling this function.
+            return;
+        }
+
+        // At this point, the first character of the segment should always be '<', which we can remove.
+        if (!segment.indexOf('<')) {
+            segment = segment.substring(1);
+        }
+
+        const tagEndIndex: number = segment.indexOf(" ");
         
-        // If there is only the tag in the element contents, then we can stop here.
+        // If there is only the tag in the code segment, then we can stop here.
         if (tagEndIndex < 0) {
-            this._tag = contents;
+            this._tag = segment;
             this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
             return;
         }
 
-        // Parse the tag and then remove it from element contents.
-        this._tag = contents.substring(0, tagEndIndex);
+        // Parse the tag and then remove it from the segment.
+        this._tag = segment.substring(0, tagEndIndex);
         this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
-        contents = contents.substring(tagEndIndex + 1);
+        segment = segment.substring(tagEndIndex + 1);
 
-        const properties: string[] = contents.split("\" ");
+        const properties: string[] = segment.split("\" ");
 
         // Remove end quote from last property.
         const lastProperty: string = properties[properties.length - 1];

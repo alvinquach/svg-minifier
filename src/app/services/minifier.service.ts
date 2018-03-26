@@ -30,7 +30,7 @@ export class MinifierService {
         
         // Data can now be parsed once all the unnecessary whitespaces have been removed.
         const parsed: SvgObject = this._svgParser.parse(result);
-
+        
         // Remove elements that will not be displayed in GT Sport.
         this._removeNoDisplay(parsed);
 
@@ -75,6 +75,7 @@ export class MinifierService {
             // TODO Add other element types that are not supported by GT Sport.
             const display: SvgElementProperty = child.properties['display'];
             if (display && display.value  == "none" || !child.type.display) {
+                console.log("Deleting", child)
                 children.splice(i--, 1);
                 continue;
             }
