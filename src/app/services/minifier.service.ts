@@ -9,6 +9,7 @@ import { TransformMatrix } from "../classes/matrix/transform-matrix.class";
 import { MathUtils } from "../utils/math.utils";
 import { SvgElementProperty } from "../classes/svg/property/svg-element-property.class";
 import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
+import { SvgElementProperties } from "../classes/svg/property/svg-element-properties.class";
 
 
 @Injectable()
@@ -42,7 +43,7 @@ export class MinifierService {
         }
 
         // Collect the properties from all the SVG elements;
-        const propertiesFlatMap: {[key: string]: SvgElementProperty}[] = this._getPropertiesFlatMap(parsed);
+        const propertiesFlatMap: SvgElementProperties[] = this._getPropertiesFlatMap(parsed);
 
         // Replace IDs and references with minified versions.
         this._idSubstitution(propertiesFlatMap);
@@ -123,8 +124,8 @@ export class MinifierService {
         return defs;
     }
 
-    private _getPropertiesFlatMap(svgObject: SvgObject): {[key: string]: SvgElementProperty}[] {
-        const result: {[key: string]: SvgElementProperty}[] = [];
+    private _getPropertiesFlatMap(svgObject: SvgObject): SvgElementProperties[] {
+        const result: SvgElementProperties[] = [];
         result.push(svgObject.properties)
         for (const child of svgObject.children) {
             result.push(...this._getPropertiesFlatMap(child));
@@ -132,7 +133,7 @@ export class MinifierService {
         return result;
     }
 
-    private _idSubstitution(propertiesFlatMap: {[key: string]: SvgElementProperty}[]): void {
+    private _idSubstitution(propertiesFlatMap: SvgElementProperties[]): void {
         const map: {[key: string]: IdProperties} = {};
         
         // Find all IDs and references
@@ -163,8 +164,8 @@ export class MinifierService {
     }
 
     /** Helper function for _idSubstitution(). */
-    private _findIdReferences(propertiesFlatMap: {[key: string]: SvgElementProperty}[], map: {[key: string]: IdProperties}): void {
-        for (const properties of propertiesFlatMap) {
+    private _findIdReferences(propertiesFlatMap: SvgElementProperties[], map: {[key: string]: IdProperties}): void {
+        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
                 let value: string = properties[key].value;
                 if (key == "id") {
@@ -193,7 +194,8 @@ export class MinifierService {
                     }
                 }
             }
-        }
+        });
+        console.log(map)
     }
 
     /** Helper function for _idSubstitution(). */    
@@ -224,12 +226,13 @@ export class MinifierService {
     }
 
     /** Helper function for _idSubstitution(). */
-    private _replaceIdReferences(propertiesFlatMap: {[key: string]: SvgElementProperty}[], map: {[key: string]: IdProperties}): void {
-        for (const properties of propertiesFlatMap) {
+    private _replaceIdReferences(propertiesFlatMap: SvgElementProperties[], map: {[key: string]: IdProperties}): void {
+        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
                 const value: string = properties[key].value;
                 if (key == "id") {
                     const id: IdProperties = map[value];
+                    console.log("FOUND ID", value)
                     if (id) {
                         if (id.replacement) {
                             properties[key].value = id.replacement;
@@ -254,13 +257,13 @@ export class MinifierService {
                     }
                 }
             }
-        }
+        });
     }
 
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
-    private _shortenHexCodes(propertiesFlatMap: {[key: string]: SvgElementProperty}[]): void {
+    private _shortenHexCodes(propertiesFlatMap: SvgElementProperties[]): void {
 
-        for (const properties of propertiesFlatMap) {
+        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
 
                 let value: string = properties[key].value;
@@ -289,13 +292,13 @@ export class MinifierService {
                     properties[key].value = value;
                 }
             }
-        }
-
+        });
     }
 
     /** Removes properties that have no effect on an element. */
-    private _removeUnusedProperties(propertiesFlatMap: {[key: string]: SvgElementProperty}[]): void {
-        for (const properties of propertiesFlatMap) {
+    private _removeUnusedProperties(propertiesFlatMap: SvgElementProperties[]): void {
+
+        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             
             // Remove miterlimit for non-miter linejoins.
             // TODO Move this to a service or utility for paths.
@@ -346,12 +349,9 @@ export class MinifierService {
                     properties['cy'].value = this._decimalPipe.transform(center[1], "1.0-2");
                     properties['r'].value = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r'].value), undefined, matrix.toArray())[0], "1.0-3");
                     delete properties['gradientTransform'];
-
                 }
-
             }
-
-        }
+        });
     }
 
     /** Ungroups the groups that have no special properties. */
@@ -361,7 +361,7 @@ export class MinifierService {
         let changed: boolean = false;
         for (const child of children) {
             this._explodeGroups(child);
-            if (child.type == SvgObjectType.Group && !Object.keys(child.properties).length) {
+            if (child.type == SvgObjectType.Group && !child.properties.hasProperties) {
                 newChildren.push(...child.children);
                 changed = true;
             }

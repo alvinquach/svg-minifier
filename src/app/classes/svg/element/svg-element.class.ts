@@ -1,5 +1,6 @@
-import { SvgObjectType } from "./svg-element-type.class";
+import { SvgElementProperties } from "../property/svg-element-properties.class";
 import { SvgElementProperty } from "../property/svg-element-property.class";
+import { SvgObjectType } from "./svg-element-type.class";
 
 /** Reprents an SVG element. */
 export class SvgObject {
@@ -8,7 +9,7 @@ export class SvgObject {
 
     private _tag: string;
 
-    private _properties: {[key: string]: SvgElementProperty} = {};
+    private _properties: SvgElementProperties = new SvgElementProperties();
 
     private _children: SvgObject[] = [];
 
@@ -61,7 +62,7 @@ export class SvgObject {
         return this._tag;
     }
 
-    get properties(): {[key: string]: SvgElementProperty} {
+    get properties(): SvgElementProperties {
         return this._properties;
     }
 
@@ -93,7 +94,7 @@ export class SvgObject {
             if (segment.length > 1) {
                 this._tag = null;
                 this._type = SvgObjectType.ElementInnerContent;
-                this._properties['content'] = new SvgElementProperty(segment.substring(1));
+                this._properties.parse(segment.substring(1));
             }
 
             // Return here regardless of the segment length.
@@ -122,23 +123,7 @@ export class SvgObject {
         this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
         segment = segment.substring(tagEndIndex + 1);
 
-        const properties: string[] = segment.split("\" ");
-
-        // Remove end quote from last property.
-        const lastProperty: string = properties[properties.length - 1];
-        if (lastProperty.lastIndexOf("\"") == lastProperty.length - 1) {
-            properties[properties.length - 1] = lastProperty.substr(0, lastProperty.length - 1);
-        }
-
-        for (const property of properties) {
-            const separatorIndex: number = property.indexOf("=\"");
-            if (separatorIndex < 0) {
-                continue;
-            }
-            const key: string = property.substring(0, separatorIndex).trim();
-            const value: string = property.substring(separatorIndex + 2);
-            this._properties[key] = new SvgElementProperty(value);
-        }
+        this._properties.parse(segment);
 
     }
 

@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { SvgObject } from "../classes/svg/element/svg-element.class";
 import { SvgElementProperty } from "../classes/svg/property/svg-element-property.class";
+import { SvgElementProperties } from "../classes/svg/property/svg-element-properties.class";
 
 @Injectable()
 export class SvgWriterService {
@@ -10,10 +11,10 @@ export class SvgWriterService {
         // console.log(svgObject)
         
         // Get the properties and its keys from the SVG element.
-        const properties: {[key: string]: SvgElementProperty} = svgObject.properties
+        const properties: SvgElementProperties = svgObject.properties;
 
         // If the SVG element has no properties or children, then it can be ignored.
-        if (!Object.keys(properties).length && !svgObject.children.length) {
+        if (!properties.hasProperties && !svgObject.children.length) {
             return "";
         }
 
@@ -23,8 +24,9 @@ export class SvgWriterService {
         result += this.generateIndent(level, indent) + "<" + svgObject.tag;
 
         // Write properties, if any.
-        for (const key in properties) {
-            result += " " + key + "=\"" + properties[key].value + "\"";
+        const propertyMap: {[key: string]: SvgElementProperty} = properties.propertyMap;
+        for (const key in propertyMap) {
+            result += " " + key + "=\"" + propertyMap[key].value + "\"";
         }
 
         // Write children, if any.

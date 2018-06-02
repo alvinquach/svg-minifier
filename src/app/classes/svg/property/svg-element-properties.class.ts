@@ -2,10 +2,20 @@ import { SvgElementProperty } from "./svg-element-property.class";
 
 export class SvgElementProperties {
 
-    private readonly _properties: {[key: string]: SvgElementProperty} = {};
+    private readonly _propertyMap: {[key: string]: SvgElementProperty} = {};
 
     /** Contents should be in the format of: property1="value1" property2="value 2" */
-    constructor(contents: string) {
+    constructor(contents?: string) {
+
+        this.parse(contents);
+
+    }
+
+    parse(contents: string): void {
+
+        if (!contents) {
+            return;
+        }
 
         const properties: string[] = contents.split("\" ");
 
@@ -22,13 +32,17 @@ export class SvgElementProperties {
             }
             const key: string = property.substring(0, separatorIndex).trim();
             const value: string = property.substring(separatorIndex + 2);
-            this._properties[key] = new SvgElementProperty(value);
+            this._propertyMap[key] = new SvgElementProperty(value);
         }
 
     }
 
-    get properties(): {[key: string]: SvgElementProperty} {
-        return this._properties;
+    get propertyMap(): {[key: string]: SvgElementProperty} {
+        return this._propertyMap;
+    }
+
+    get hasProperties(): boolean {
+        return !!Object.keys(this._propertyMap).length;
     }
 
 }
