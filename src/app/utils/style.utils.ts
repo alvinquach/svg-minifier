@@ -1,6 +1,6 @@
 export class StyleUtils {
 
-    parseStyle(style: string): {[key: string]: string} {
+    static parseStyle(style: string): {[key: string]: string} {
         const result: {[key: string]: string} = {};
         const styles: string[] = style.split(";");
         for (let i = 0; i < styles.length; i++) {
@@ -13,6 +13,14 @@ export class StyleUtils {
                 continue;
             }
             result[keyValue[0].trim()] = keyValue[1].trim();
+        }
+        return result;
+    }
+
+    static writeStyleAsString(styleMap: {[key: string]: string}): string {
+        let result: string = "";
+        for (const key of Object.keys(styleMap)) {
+            result += `${key}:${styleMap[key]};`
         }
         return result;
     }

@@ -10,6 +10,8 @@ import { MathUtils } from "../utils/math.utils";
 import { SvgElementProperty } from "../classes/svg/property/svg-element-property.class";
 import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
 import { SvgElementProperties } from "../classes/svg/property/svg-element-properties.class";
+import { PropertyUtils } from "../utils/property.utils";
+import { StyleUtils } from "../utils/style.utils";
 
 
 @Injectable()
@@ -44,6 +46,9 @@ export class MinifierService {
 
         // Collect the properties from all the SVG elements;
         const propertiesFlatMap: SvgElementProperties[] = this._getPropertiesFlatMap(parsed);
+
+        // Explode the style properites into separate properites.
+        this._explodeStyles(propertiesFlatMap);
 
         // Replace IDs and references with minified versions.
         this._idSubstitution(propertiesFlatMap);
@@ -295,6 +300,41 @@ export class MinifierService {
         });
     }
 
+    /** Explodes style properties into separate properties. */
+    private _explodeStyles(propertiesFlatMap: SvgElementProperties[]): void {
+        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
+            if ('style' in properties) {
+                const style: {[key: string]: string} = StyleUtils.parseStyle(properties['style'].value);
+                let changed: boolean = false;
+
+                // TODO Find out which other styles can be exploded.
+                // Only the stop-color and stop-opacity are exploded for now.
+                if ('stop-color' in style) {
+                    properties['stop-color'] = new SvgElementProperty(style['stop-color']);
+                    delete style['stop-color'];
+                    changed = true;
+                }
+                if ('stop-opacity' in style) {
+                    properties['stop-opacity'] = new SvgElementProperty(style['stop-opacity']);
+                    delete style['stop-opacity'];
+                    changed = true;
+                }
+
+                // TODO Store styles as a map isntead of a string and write as
+                // string at the very end when the SVG is writted as string.
+                console.log("STYLE FOUND", changed, style);
+                if (changed) {
+                    if (Object.keys(style).length) {
+                        properties['style'].value = StyleUtils.writeStyleAsString(style);
+                    }
+                    else {
+                        delete properties['style'];
+                    }
+                }
+            }
+        });
+    }
+
     /** Removes properties that have no effect on an element. */
     private _removeUnusedProperties(propertiesFlatMap: SvgElementProperties[]): void {
 
@@ -351,6 +391,15 @@ export class MinifierService {
                     delete properties['gradientTransform'];
                 }
             }
+
+            // Removes black colors, since no color defined will result in black anyways.
+            // TODO Move this somewhere else.
+            for (const key of Object.keys(properties)) {
+                if (PropertyUtils.isColorProperty(key) && ColorUtils.isBlack(properties[key].value)) {
+                    delete properties[key];
+                }
+            }
+
         });
     }
 

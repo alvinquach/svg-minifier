@@ -41,4 +41,10 @@ export class ColorUtils {
         return hex;
     }
 
+    /** Checks if a string color value is black. */
+    static isBlack(value: string) {
+        // TODO Add more forms of black.
+        return value == "#000" || value == "#000000"
+    }
+
 }
