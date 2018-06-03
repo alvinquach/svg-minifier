@@ -82,7 +82,6 @@ export class MinifierService {
             // TODO Add other element types that are not supported by GT Sport.
             const display: SvgElementProperty = child.properties.propertyMap['display'];
             if (display && display.value  == "none" || !child.type.display) {
-                console.log("Deleting", child)
                 children.splice(i--, 1);
                 continue;
             }
@@ -200,7 +199,6 @@ export class MinifierService {
                 }
             }
         });
-        console.log(map)
     }
 
     /** Helper function for _idSubstitution(). */    
@@ -237,7 +235,6 @@ export class MinifierService {
                 const value: string = properties[key].value;
                 if (key == "id") {
                     const id: IdProperties = map[value];
-                    console.log("FOUND ID", value)
                     if (id) {
                         if (id.replacement) {
                             properties[key].value = id.replacement;
@@ -322,7 +319,6 @@ export class MinifierService {
 
                 // TODO Store styles as a map isntead of a string and write as
                 // string at the very end when the SVG is writted as string.
-                console.log("STYLE FOUND", changed, style);
                 if (changed) {
                     if (Object.keys(style).length) {
                         properties['style'].value = StyleUtils.writeStyleAsString(style);
@@ -392,11 +388,19 @@ export class MinifierService {
                 }
             }
 
-            // Removes black colors, since no color defined will result in black anyways.
-            // TODO Move this somewhere else.
+            // Iterate through each property value.
+            // TODO Move these operations somewhere else.
             for (const key of Object.keys(properties)) {
-                if (PropertyUtils.isColorProperty(key) && ColorUtils.isBlack(properties[key].value)) {
+                const value: string = properties[key].value;
+
+                // Removes black colors for fill and stop-color, since no color defined will result in black anyways.
+                if ((key == 'fill' || key == 'stop-color') && ColorUtils.isBlack(value)) {
                     delete properties[key];
+                }
+
+                // Removes the leading 0 in decimal values that are less than 1.
+                if (!value.indexOf("0.")) {
+                    properties[key].value = value.substring(1);
                 }
             }
 
