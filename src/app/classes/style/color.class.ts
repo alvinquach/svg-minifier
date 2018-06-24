@@ -49,7 +49,10 @@ export class Color {
         this._alpha = this._capIntensityValue(alpha);
     }
 
-    /** Updates the color with RGB values ranging form 0 - 255. */
+    /**
+     * Updates the color with RGB values ranging form 0 - 255.
+     * The alpha value is unaffected by this operation.
+     */
     setRGB(R: number, G: number, B: number): Color {
         this.red = R / 255;
         this.green = G / 255;
@@ -57,7 +60,19 @@ export class Color {
         return this;
     }
 
-    /** Updates the color with a hex color string. */
+    /** Updates the color with RGBA values ranging form 0 - 255. */
+    setRGBA(R: number, G: number, B: number, A: number): Color {
+        this.red = R / 255;
+        this.green = G / 255;
+        this.blue = B / 255;
+        this.alpha = A / 255;
+        return this;
+    }
+
+    /**
+     * Updates the color with a hex color string.
+     * The alpha value is unaffected by this operation.
+     */
     setFromHex(hex: string): Color {
         if (ColorUtils.isHexColor(hex)) {
             this.red = parseInt(hex.substr(1, 2), 16) / 255;
@@ -69,6 +84,7 @@ export class Color {
 
     /**
      * Outputs the color as a hex string.
+     * Ignores the alpha value.
      * @param allowShort Allows short hex form to be output when possible.
      */
     toHexString(allowShort: boolean = true): string {
@@ -90,12 +106,17 @@ export class Color {
      *                     If set to true, then the ouput will always be in rgba() format.
      *                     If set to false, then the output will always be in rgb() format.
      * @param addSpace Whether to add a space after each comma that separates the color values.
+     * @param includingLeadingZero Whether to include leading zero for decimal values less than 1.
      */
-    toRGBAString(includeAlpha?: boolean, addSpace?: boolean): string {
+    toRGBAString(includeAlpha?: boolean, addSpace?: boolean, includingLeadingZero?: boolean): string {
         if (includeAlpha == undefined && this._alpha < 1) {
             includeAlpha = true;
         }
         if (includeAlpha) {
+            let alpha: string = String(this._alpha);
+            if (!includingLeadingZero && alpha.length > 1) {
+                alpha = alpha.substring(1);
+            }
             return "rgba("
                 + this._intensityDecimalToInt(this._red)
                 + (addSpace ? ", " : ",")
@@ -103,7 +124,7 @@ export class Color {
                 + (addSpace ? ", " : ",")
                 + this._intensityDecimalToInt(this._blue)
                 + (addSpace ? ", " : ",")
-                + this._alpha
+                + alpha
                 + ")";
         }
         else {

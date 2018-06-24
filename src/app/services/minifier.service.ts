@@ -12,6 +12,7 @@ import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.clas
 import { SvgElementProperties } from "../classes/svg/property/svg-element-properties.class";
 import { PropertyUtils } from "../utils/property.utils";
 import { StyleUtils } from "../utils/style.utils";
+import { Color } from "../classes/style/color.class";
 
 
 @Injectable()
@@ -53,11 +54,16 @@ export class MinifierService {
         // Replace IDs and references with minified versions.
         this._idSubstitution(propertiesFlatMap);
 
-        // Shorten color hex codes (ie #DDFF00 --> #DF0).
-        this._shortenHexCodes(propertiesFlatMap);
-
         // Removes properties that have no effect on an element.
         this._removeUnusedProperties(propertiesFlatMap);
+
+        // Shorten color hex codes (ie #DDFF00 --> #DF0).
+        // This should be called after removing un-needed black color properties.
+        this._shortenHexCodes(propertiesFlatMap);
+
+        // Combine color and opacity properties into a single color property.
+        // This should be called after removing un-needed black color properties.
+        this._mergeColorOpacity(propertiesFlatMap);
 
         // Ungroup groups
         this._explodeGroups(parsed);
@@ -259,6 +265,43 @@ export class MinifierService {
                     }
                 }
             }
+        });
+    }
+
+    /**
+     * Merges color and opacity properties into an rgba value.
+     * Example: <... stroke="#FAD9CF" stroke-opacity=".25" ...> will become
+     * <... stroke="rgba(250,217,207,.25)" ...> after the merge.
+     */
+    private _mergeColorOpacity(propertiesFlatMap: SvgElementProperties[]): void {
+
+        // TODO Move this somewhere else?
+        const colorOpacityPairs: {colorKey: string, opacityKey: string}[] = [
+            { colorKey: 'fill', opacityKey: 'fill-opacity' },
+            { colorKey: 'stroke', opacityKey: 'stroke-opacity' },
+            { colorKey: 'stop-color', opacityKey: 'stop-opacity' },
+        ];
+
+        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
+
+            colorOpacityPairs.forEach(keyPair => {
+                if (keyPair.colorKey in properties && keyPair.opacityKey in properties) {
+                    const colorValue = properties[keyPair.colorKey].value;
+                    
+                    // TODO Handle non hex color values.
+                    if (!ColorUtils.isHexColor(colorValue)) {
+                        return;
+                    }
+                    
+                    const color: Color = new Color();
+                    color.setFromHex(colorValue);
+                    color.alpha = Number.parseFloat(properties[keyPair.opacityKey].value);
+
+                    properties[keyPair.colorKey].value = color.toRGBAString(true);
+                    delete properties[keyPair.opacityKey];
+                }
+            });
+
         });
     }
 
