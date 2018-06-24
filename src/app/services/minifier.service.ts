@@ -63,10 +63,13 @@ export class MinifierService {
 
         // Combine color and opacity properties into a single color property.
         // This should be called after removing un-needed black color properties.
+        //
         // THIS HAS BEEN REMOVED, as it is not supported in GT Sport.
+        //
         // this._mergeColorOpacity(propertiesFlatMap);
 
-
+        // GT Sport specific fixes.
+        this._fixForGTSport(parsed, svgOutputOptions.radialGradientFix);
 
         // Ungroup groups
         this._explodeGroups(parsed);
@@ -382,63 +385,19 @@ export class MinifierService {
     /** Removes properties that have no effect on an element. */
     private _removeUnusedProperties(propertiesFlatMap: SvgElementProperties[]): void {
 
+        // Contains a list of properties that should always be removed.
+        // TODO Move this somewhere else.
+        // TODO Maybe use a Set for this.
+        const unusedProperites: string[] = [
+            'enable-background'
+        ];
+
         propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
-            
-            // Remove miterlimit for non-miter linejoins.
-            // TODO Move this to a service or utility for paths.
-            const strokeLinejoin: SvgElementProperty = properties['stroke-linejoin'];
-            if (strokeLinejoin && strokeLinejoin.value != "miter") {
-                delete properties['stroke-miterlimit'];
-            }
-
-            // Applies the gradientTransform matrix to the gradient itself,
-            // since GT Sport does not support tranformation matrices on gradients.
-            //
-            // FIXME Add sanity checks.
-            // TODO Move this to a service or utility for gradients.
-            if ('gradientTransform' in properties) {
-                const gradientTransform: string = properties['gradientTransform'].value;
-
-                // Assumes that the property starts with "matrix(" and ends with ")".
-                const values: string[] = gradientTransform.substring(7, gradientTransform.length - 1).split(" ");
-
-                // Assumes that all values are valid numbers.
-                const matrix: TransformMatrix = new TransformMatrix(...values.map(v => Number(v)));
-
-                // FIXME The above two opertaion are a waste if the if-statements below all evaluate to false.
-
-                // linearGradient
-                if ('x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
-                    
-                    // Assumes that all values are valid numbers.
-                    const start: number[] = MathUtils.transformPoint(Number(properties['x1'].value), Number(properties['y1'].value), matrix.toArray());
-                    const end: number[] = MathUtils.transformPoint(Number(properties['x2'].value), Number(properties['y2'].value), matrix.toArray());
-
-                    // TODO Determine the required precision.
-                    properties['x1'].value = this._decimalPipe.transform(start[0], "1.0-3");
-                    properties['y1'].value = this._decimalPipe.transform(start[1], "1.0-3");
-                    properties['x2'].value = this._decimalPipe.transform(end[0], "1.0-3");
-                    properties['y2'].value = this._decimalPipe.transform(end[1], "1.0-3");
-                    delete properties['gradientTransform'];
-                }
-
-                // radialGradients
-                else if ('cx' in properties && 'cy' in properties && 'r' in properties) {
-
-                    // Assumes that all values are valid numbers.
-                    const center: number[] = MathUtils.transformPoint(Number(properties['cx'].value), Number(properties['cy'].value), matrix.toArray());
-
-                    // TODO Determine the required precision.
-                    properties['cx'].value = this._decimalPipe.transform(center[0], "1.0-2");
-                    properties['cy'].value = this._decimalPipe.transform(center[1], "1.0-2");
-                    properties['r'].value = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r'].value), undefined, matrix.toArray())[0], "1.0-3");
-                    delete properties['gradientTransform'];
-                }
-            }
 
             // Iterate through each property value.
             // TODO Move these operations somewhere else.
-            for (const key of Object.keys(properties)) {
+            Object.keys(properties).forEach(key => {
+
                 const value: string = properties[key].value;
 
                 // Removes black colors for fill and stop-color, since no color defined will result in black anyways.
@@ -447,17 +406,122 @@ export class MinifierService {
                 }
 
                 // Removes stroke-miterlimit="500"
+                // TODO Move this to a service or utility for paths.
                 if (key == 'stroke-miterlimit' && value == "500") {
                     delete properties[key];
+                }
+
+                // Remove miterlimit for non-miter linejoins.
+                // TODO Move this to a service or utility for paths.
+                if (key == 'stroke-linejoin' && value != "miter") {
+                    delete properties['stroke-miterlimit'];
                 }
 
                 // Removes the leading 0 in decimal values that are less than 1.
                 if (!value.indexOf("0.")) {
                     properties[key].value = value.substring(1);
                 }
-            }
+
+                // Removes rest of unused properties.
+                if (unusedProperites.indexOf(key) >= 0) {
+                    delete properties[key];
+                }
+
+            });
 
         });
+    }
+
+    /** Attempts to fix various issues that GT Sport has with the SVG standards. */
+    private _fixForGTSport(svgObject: SvgObject, fixRadialGradients: boolean, aspectRatio?: number): void {
+
+        // Get properties map for current SVG element.
+        const properties: {[key: string]: SvgElementProperty} = svgObject.properties.propertyMap;        
+
+        // Check the root svgObject (which should be the 'svg' tagged element) for a viewBox property.
+        // If the aspect ratio of the view box is portrait (height > width), then there is a bug in
+        // GT Sport that renders radialGradients with incorrect radius. If this is the case, then the
+        // radius of every radial gradient will have to be multiplied by the aspect ratio to be displayed
+        // correctly. This code assumes that the first two values of the viewBox property are both zeros.
+        //
+        // TODO Figure out what happens if the first two values are non-zero.
+        if (fixRadialGradients && !aspectRatio && svgObject.type == SvgObjectType.Svg) {
+
+            if ('viewBox' in properties) {
+                const viewBox: string[] = properties['viewBox'].value.split(" ");
+                const width: number = Number.parseFloat(viewBox[2]);
+                const height: number  = Number.parseFloat(viewBox[3]);
+
+                // Radial gradients should work propertly in this case and does not need to be fixed.
+                if (width >= height) {
+                    fixRadialGradients = false; 
+                }
+
+                // Calculate the aspect ratio and apply it to the radii later.
+                else {
+                    aspectRatio = width / height;
+                }
+            }
+        }
+
+        // Apply aspect ratio correction to the radius of radial gradients if needed.
+        if (fixRadialGradients && aspectRatio && svgObject.type == SvgObjectType.RadialGradient && 'r' in properties) {
+            const radius: number = Number.parseFloat(properties['r'].value);
+
+            // TODO Determine the required precision.
+            properties['r'].value = this._decimalPipe.transform(aspectRatio * radius, "1.0-2");
+        }
+
+        // Applies the gradientTransform matrix to the gradient itself,
+        // since GT Sport does not support tranformation matrices on gradients.
+        //
+        // FIXME Add sanity checks.
+        // TODO Move this to a service or utility for gradients.
+        if ('gradientTransform' in properties) {
+            const gradientTransform: string = properties['gradientTransform'].value;
+
+            // Assumes that the property starts with "matrix(" and ends with ")".
+            const values: string[] = gradientTransform.substring(7, gradientTransform.length - 1).split(" ");
+
+            // Assumes that all values are valid numbers.
+            const matrix: TransformMatrix = new TransformMatrix(...values.map(v => Number(v)));
+
+            // FIXME The above two opertaion are a waste if the if-statements below all evaluate to false.
+
+            // linearGradient
+            if ('x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
+                
+                // Assumes that all values are valid numbers.
+                const start: number[] = MathUtils.transformPoint(Number(properties['x1'].value), Number(properties['y1'].value), matrix.toArray());
+                const end: number[] = MathUtils.transformPoint(Number(properties['x2'].value), Number(properties['y2'].value), matrix.toArray());
+
+                // TODO Determine the required precision.
+                properties['x1'].value = this._decimalPipe.transform(start[0], "1.0-3");
+                properties['y1'].value = this._decimalPipe.transform(start[1], "1.0-3");
+                properties['x2'].value = this._decimalPipe.transform(end[0], "1.0-3");
+                properties['y2'].value = this._decimalPipe.transform(end[1], "1.0-3");
+                delete properties['gradientTransform'];
+            }
+
+            // radialGradients
+            else if ('cx' in properties && 'cy' in properties && 'r' in properties) {
+
+                // Assumes that all values are valid numbers.
+                const center: number[] = MathUtils.transformPoint(Number(properties['cx'].value), Number(properties['cy'].value), matrix.toArray());
+
+                // TODO Determine the required precision.
+                properties['cx'].value = this._decimalPipe.transform(center[0], "1.0-2");
+                properties['cy'].value = this._decimalPipe.transform(center[1], "1.0-2");
+                properties['r'].value = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r'].value), undefined, matrix.toArray())[0], "1.0-3");
+                delete properties['gradientTransform'];
+            }
+        }
+
+        // Call recursively to traverse through children.
+        svgObject.children.forEach(child => {
+            this._fixForGTSport(child, fixRadialGradients, aspectRatio);
+        });
+
     }
 
     /** Ungroups the groups that have no special properties. */

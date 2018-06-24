@@ -2,8 +2,9 @@
     <input #fileInput type="file" accept=".svg" (change)="markForCheck()"/>
 </div>
 
-<div class="process-options">
+<div class="process-options" fxLayout="row" fxLayout.xs="column" fxLayoutAlign="center center">
     <mat-checkbox [(ngModel)]="svgOutputOptions.indent">Output indents and line breaks</mat-checkbox>
+    <mat-checkbox [(ngModel)]="svgOutputOptions.radialGradientFix">Fix radial gradient</mat-checkbox>
     <button mat-raised-button (click)="process()" color="accent" [disabled]="!hasFiles()">MINIFY</button>    
 </div>
 

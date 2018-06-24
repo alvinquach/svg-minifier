@@ -2,61 +2,73 @@ export class SvgObjectType {
 
     /** circle */
     static readonly Circle: SvgObjectType = {
-        tag: "circle",
+        tag: 'circle',
         display: true
     }
 
     /** clipPath */
     static readonly ClipPath: SvgObjectType = {
-        tag: "clipPath",
+        tag: 'clipPath',
         display: true
     }
 
     /** ellipse */
     static readonly Ellipse: SvgObjectType = {
-        tag: "ellipse",
+        tag: 'ellipse',
         display: true
     }
 
     /** defs */
     static readonly Definitions: SvgObjectType = {
-        tag: "defs",
+        tag: 'defs',
         display: true
     }
 
     /** g */
     static readonly Group: SvgObjectType = {
-        tag: "g",
+        tag: 'g',
         display: true
     }
 
     /** image */
     static readonly Image: SvgObjectType = {
-        tag: "image",
+        tag: 'image',
         display: false
+    }
+
+    /** linearGradient */
+    static readonly LinearGradient: SvgObjectType = {
+        tag: 'linearGradient',
+        display: true
     }
 
     /** path */
     static readonly Path: SvgObjectType = {
-        tag: "path",
+        tag: 'path',
         display: true
     }
 
+    /** radialGradient */
+    static readonly RadialGradient: SvgObjectType = {
+        tag: 'radialGradient',
+        display: true
+    }
+    
     /** rect */
     static readonly Rectangle: SvgObjectType = {
-        tag: "rect",
+        tag: 'rect',
         display: true
     }
 
     /** svg */
     static readonly Svg: SvgObjectType = {
-        tag: "svg",
+        tag: 'svg',
         display: true
     }
 
     /** use */
     static readonly Use: SvgObjectType = {
-        tag: "use",
+        tag: 'use',
         display: true
     }
 
@@ -68,7 +80,7 @@ export class SvgObjectType {
 
     /** Default tag for unrecognized tags. */ 
     static readonly Default: SvgObjectType = { 
-        tag: "default",
+        tag: 'default',
         display: true
     }; 
 
