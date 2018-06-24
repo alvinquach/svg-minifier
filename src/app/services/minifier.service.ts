@@ -63,7 +63,10 @@ export class MinifierService {
 
         // Combine color and opacity properties into a single color property.
         // This should be called after removing un-needed black color properties.
-        this._mergeColorOpacity(propertiesFlatMap);
+        // THIS HAS BEEN REMOVED, as it is not supported in GT Sport.
+        // this._mergeColorOpacity(propertiesFlatMap);
+
+
 
         // Ungroup groups
         this._explodeGroups(parsed);
@@ -272,6 +275,8 @@ export class MinifierService {
      * Merges color and opacity properties into an rgba value.
      * Example: <... stroke="#FAD9CF" stroke-opacity=".25" ...> will become
      * <... stroke="rgba(250,217,207,.25)" ...> after the merge.
+     * 
+     * Currently unused, as it is not supported by GT Sport.
      */
     private _mergeColorOpacity(propertiesFlatMap: SvgElementProperties[]): void {
 
