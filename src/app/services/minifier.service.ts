@@ -446,8 +446,8 @@ export class MinifierService {
                     delete properties[key];
                 }
 
-                // Removes stroke-miterlimit="1"
-                if (key == 'stroke-miterlimit' && value == "1") {
+                // Removes stroke-miterlimit="500"
+                if (key == 'stroke-miterlimit' && value == "500") {
                     delete properties[key];
                 }
 
