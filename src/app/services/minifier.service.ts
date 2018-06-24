@@ -398,6 +398,12 @@ export class MinifierService {
             // TODO Move these operations somewhere else.
             Object.keys(properties).forEach(key => {
 
+                // Need to check if the key still exists, since some keys could
+                // have been removed in a previous iteration of the forEach loop.
+                if (properties[key] == undefined) {
+                    return;
+                }
+
                 const value: string = properties[key].value;
 
                 // Removes black colors for fill and stop-color, since no color defined will result in black anyways.
