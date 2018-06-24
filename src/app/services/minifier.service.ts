@@ -441,6 +441,11 @@ export class MinifierService {
                     delete properties[key];
                 }
 
+                // Removes stroke-miterlimit="1"
+                if (key == 'stroke-miterlimit' && value == "1") {
+                    delete properties[key];
+                }
+
                 // Removes the leading 0 in decimal values that are less than 1.
                 if (!value.indexOf("0.")) {
                     properties[key].value = value.substring(1);
