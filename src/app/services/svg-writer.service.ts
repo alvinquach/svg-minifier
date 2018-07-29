@@ -6,6 +6,14 @@ import { SvgElementProperties } from "../classes/svg/property/svg-element-proper
 @Injectable()
 export class SvgWriterService {
 
+    /**
+     * Converts the SvgObject into an SVG markup string.
+     * @param svgObject The object containing the SVG data.
+     * @param indent (optional) A string used for indentation. If this is not provided,
+     *               then the output will also be on a single line (no line breaks).
+     * @param level For internal use only. Leave this empty when calling the function externally.
+     * @returns A string containing the SVG markup generated from the SvgObject.
+     */
     writeAsString(svgObject: SvgObject, indent?: string, level: number = 0): string {
 
         // console.log(svgObject)

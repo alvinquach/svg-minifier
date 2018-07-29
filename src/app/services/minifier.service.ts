@@ -55,7 +55,7 @@ export class MinifierService {
         this._idSubstitution(propertiesFlatMap);
 
         // Removes properties that have no effect on an element.
-        this._removeUnusedProperties(propertiesFlatMap);
+        this._removeUnusedProperties(propertiesFlatMap, svgOutputOptions);
 
         // Shorten color hex codes (ie #DDFF00 --> #DF0).
         // This should be called after removing un-needed black color properties.
@@ -69,7 +69,7 @@ export class MinifierService {
         // this._mergeColorOpacity(propertiesFlatMap);
 
         // GT Sport specific fixes.
-        this._fixForGTSport(parsed, svgOutputOptions.radialGradientFix);
+        this._fixForGTSport(parsed, svgOutputOptions.gtSportRadialGradientFix);
 
         // Ungroup groups
         this._explodeGroups(parsed);
@@ -77,7 +77,7 @@ export class MinifierService {
         // Console log
         parsed.printContents();
 
-        return this._svgWriter.writeAsString(parsed, svgOutputOptions && svgOutputOptions.indent ? "\t" : undefined);
+        return this._svgWriter.writeAsString(parsed, svgOutputOptions && svgOutputOptions.outputSingleLine ? undefined : '\t');
 
         // TODO Remove "px".
 
@@ -383,7 +383,7 @@ export class MinifierService {
     }
 
     /** Removes properties that have no effect on an element. */
-    private _removeUnusedProperties(propertiesFlatMap: SvgElementProperties[]): void {
+    private _removeUnusedProperties(propertiesFlatMap: SvgElementProperties[], options: SvgOutputOptions): void {
 
         // Contains a list of properties that should always be removed.
         // TODO Move this somewhere else.
