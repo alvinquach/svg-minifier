@@ -411,9 +411,9 @@ export class MinifierService {
                     delete properties[key];
                 }
 
-                // Removes stroke-miterlimit="500"
+                // Removes stroke-miterlimit="4", since the value is 4 by default.
                 // TODO Move this to a service or utility for paths.
-                if (key == 'stroke-miterlimit' && value == "500") {
+                if (key == 'stroke-miterlimit' && value == "4") {
                     delete properties[key];
                 }
 
