@@ -1,18 +1,16 @@
-import { Color } from "../../style/color.class";
-
-export class SvgElementProperty {
+export class SvgObjectProperty {
 
     private _value: string;
     // private _value: string | number | Color;
 
-    private _format: SvgElementPropertyFormat;
+    private _format: SvgObjectPropertyFormat;
 
     private _enabled: boolean;
 
     constructor(
         value: string,
         // value: string | number | Color,
-        format: SvgElementPropertyFormat = SvgElementPropertyFormat.DEFAULT,
+        format: SvgObjectPropertyFormat = SvgObjectPropertyFormat.DEFAULT,
         enabled: boolean = true) {
 
             this.value = value;
@@ -36,7 +34,7 @@ export class SvgElementProperty {
     //     this._value = value;
     // }
 
-    get format(): SvgElementPropertyFormat {
+    get format(): SvgObjectPropertyFormat {
         return this._format;
     }
 
@@ -50,7 +48,7 @@ export class SvgElementProperty {
 
 }
 
-export enum SvgElementPropertyFormat {
+export enum SvgObjectPropertyFormat {
     DEFAULT,
     NUMBER,
     COLOR,

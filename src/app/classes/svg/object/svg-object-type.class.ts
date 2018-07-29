@@ -1,3 +1,8 @@
+import { SvgObject } from "./svg-object.class";
+import { SvgOutputOptions } from "../options/svg-output-options.class";
+import { removeDefaultStopColor, fixGTSportRaidalGradient, removeDefaultStrokeMiter } from "../../../defs/svg-object-type-functions";
+import { ProcessFunctions } from "../../../defs/type/process-function.type";
+
 export class SvgObjectType {
 
     /** circle */
@@ -36,6 +41,15 @@ export class SvgObjectType {
         display: false
     }
 
+    /** line */
+    static readonly Line: SvgObjectType = {
+        tag: 'line',
+        display: true,
+        postProcessFunctions: [
+            removeDefaultStrokeMiter
+        ]
+    }
+
     /** linearGradient */
     static readonly LinearGradient: SvgObjectType = {
         tag: 'linearGradient',
@@ -45,19 +59,55 @@ export class SvgObjectType {
     /** path */
     static readonly Path: SvgObjectType = {
         tag: 'path',
-        display: true
+        display: true,
+        postProcessFunctions: [
+            removeDefaultStrokeMiter
+        ]
+    }
+
+    /** polygon */
+    static readonly Polygon: SvgObjectType = {
+        tag: 'polygon',
+        display: true,
+        postProcessFunctions: [
+            removeDefaultStrokeMiter
+        ]
+    }
+
+    /** polyline */
+    static readonly Polyline: SvgObjectType = {
+        tag: 'polyline',
+        display: true,
+        postProcessFunctions: [
+            removeDefaultStrokeMiter
+        ]
     }
 
     /** radialGradient */
     static readonly RadialGradient: SvgObjectType = {
         tag: 'radialGradient',
-        display: true
+        display: true,
+        postProcessFunctions: [
+            fixGTSportRaidalGradient
+        ]
     }
     
     /** rect */
     static readonly Rectangle: SvgObjectType = {
         tag: 'rect',
-        display: true
+        display: true,
+        postProcessFunctions: [
+            removeDefaultStrokeMiter
+        ]
+    }
+
+    /** stop */
+    static readonly Stop: SvgObjectType = {
+        tag: 'stop',
+        display: true,
+        preProcessFunctions: [
+            removeDefaultStopColor
+        ]
     }
 
     /** svg */
@@ -90,6 +140,15 @@ export class SvgObjectType {
 
     readonly display: boolean;
 
+    /** 
+     * A list of functions to be executed on the SVG object before the global processing operations
+     * (except for defs consolidation, style explosion, and ID minfication which are always performed first).
+     */
+    readonly preProcessFunctions?: ProcessFunctions;
+
+    /** A list of functions to be executed on the SVG object after the global processing operations. */
+    readonly postProcessFunctions?: ProcessFunctions;
+
     static findByTag(tag: string): SvgObjectType {
         if (!this._tagMap) {
             this._generateTagMap();
@@ -109,6 +168,5 @@ export class SvgObjectType {
             }
         }
     }
-
 
 }

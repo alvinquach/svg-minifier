@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { SvgObject } from "../classes/svg/element/svg-element.class";
+import { SvgObject } from "../classes/svg/object/svg-object.class";
 
 @Injectable()
 export class SvgParserService {

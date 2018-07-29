@@ -1,8 +1,8 @@
-import { SvgElementProperty } from "./svg-element-property.class";
+import { SvgObjectProperty } from "./svg-object-property.class";
 
-export class SvgElementProperties {
+export class SvgObjectProperties {
 
-    private readonly _propertyMap: {[key: string]: SvgElementProperty} = {};
+    private readonly _propertyMap: {[key: string]: SvgObjectProperty} = {};
 
     /** Contents should be in the format of: property1="value1" property2="value 2" */
     constructor(contents?: string) {
@@ -32,12 +32,12 @@ export class SvgElementProperties {
             }
             const key: string = property.substring(0, separatorIndex).trim();
             const value: string = property.substring(separatorIndex + 2);
-            this._propertyMap[key] = new SvgElementProperty(value);
+            this._propertyMap[key] = new SvgObjectProperty(value);
         }
 
     }
 
-    get propertyMap(): {[key: string]: SvgElementProperty} {
+    get propertyMap(): {[key: string]: SvgObjectProperty} {
         return this._propertyMap;
     }
 

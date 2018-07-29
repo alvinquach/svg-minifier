@@ -45,6 +45,19 @@ export class SingleMinifierComponent implements AfterViewInit {
         this._cd.markForCheck();
     }
 
+    clearOptions() {
+        for (const key in this._svgOutputOptions) {
+            this._svgOutputOptions[key] = false;
+        }
+    }
+
+    gtSportOptionsPreset() {
+        this._svgOutputOptions.minifyElementIds = true;
+        this._svgOutputOptions.gtSportFixGradientTransform = true;
+        this._svgOutputOptions.gtSportFixRadialGradients = true;
+        this._svgOutputOptions.gtSportRemoveMiterLimits = true;
+    }
+
     hasFiles(): boolean {
         return this._inputEl && !!this._inputEl.files.length;
     }

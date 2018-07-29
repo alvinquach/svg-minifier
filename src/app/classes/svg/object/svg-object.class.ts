@@ -1,6 +1,5 @@
-import { SvgElementProperties } from "../property/svg-element-properties.class";
-import { SvgElementProperty } from "../property/svg-element-property.class";
-import { SvgObjectType } from "./svg-element-type.class";
+import { SvgObjectProperties } from "./property/svg-object-properties.class";
+import { SvgObjectType } from "./svg-object-type.class";
 
 /** Reprents an SVG element. */
 export class SvgObject {
@@ -9,7 +8,7 @@ export class SvgObject {
 
     private _tag: string;
 
-    private _properties: SvgElementProperties = new SvgElementProperties();
+    private _properties: SvgObjectProperties = new SvgObjectProperties();
 
     private _children: SvgObject[] = [];
 
@@ -62,7 +61,7 @@ export class SvgObject {
         return this._tag;
     }
 
-    get properties(): SvgElementProperties {
+    get properties(): SvgObjectProperties {
         return this._properties;
     }
 

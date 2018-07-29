@@ -1,18 +1,16 @@
-import { Injectable } from "@angular/core";
 import { DecimalPipe } from "@angular/common";
-import { SvgObject } from "../classes/svg/element/svg-element.class";
+import { Injectable } from "@angular/core";
+import { SvgObjectProperties } from "../classes/svg/object/property/svg-object-properties.class";
+import { SvgObjectProperty } from "../classes/svg/object/property/svg-object-property.class";
+import { SvgObjectType } from "../classes/svg/object/svg-object-type.class";
+import { SvgObject } from "../classes/svg/object/svg-object.class";
+import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
+import { ProcessFunctions } from "../defs/type/process-function.type";
+import { VariableNames } from "../defs/variable-names";
+import { ColorUtils } from "../utils/color.utils";
+import { StyleUtils } from "../utils/style.utils";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
-import { SvgObjectType } from "../classes/svg/element/svg-element-type.class";
-import { ColorUtils } from "../utils/color.utils";
-import { TransformMatrix } from "../classes/matrix/transform-matrix.class";
-import { MathUtils } from "../utils/math.utils";
-import { SvgElementProperty } from "../classes/svg/property/svg-element-property.class";
-import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
-import { SvgElementProperties } from "../classes/svg/property/svg-element-properties.class";
-import { PropertyUtils } from "../utils/property.utils";
-import { StyleUtils } from "../utils/style.utils";
-import { Color } from "../classes/style/color.class";
 
 
 @Injectable()
@@ -35,6 +33,9 @@ export class MinifierService {
         
         // Data can now be parsed once all the unnecessary whitespaces have been removed.
         const parsed: SvgObject = this._svgParser.parse(result);
+
+        // Aspect ratio of the view box.
+        const viewBoxAspectRatio: number = this._calculateAspectRatio(parsed);
         
         // Remove elements that will not be displayed in GT Sport.
         this._removeNoDisplay(parsed);
@@ -46,14 +47,21 @@ export class MinifierService {
         }
 
         // Collect the properties from all the SVG elements;
-        const propertiesFlatMap: SvgElementProperties[] = this._getPropertiesFlatMap(parsed);
+        const propertiesFlatMap: SvgObjectProperties[] = this._getPropertiesFlatMap(parsed);
 
         // Explode the style properites into separate properites.
         this._explodeStyles(propertiesFlatMap);
 
-        // Replace IDs and references with minified versions.
-        this._idSubstitution(propertiesFlatMap);
+        // Replace IDs and references with minified version, if the option was selected.
+        if (svgOutputOptions.minifyElementIds) {
+            this._idSubstitution(propertiesFlatMap);
+        }
 
+        // Apply the pre-process functions for each element as defined by its type in SvgObjectType.
+        this._processIndividualElements('pre', parsed, svgOutputOptions, {
+            [VariableNames.ViewBoxAspectRatio]: viewBoxAspectRatio
+        });
+        
         // Removes properties that have no effect on an element.
         this._removeUnusedProperties(propertiesFlatMap, svgOutputOptions);
 
@@ -61,18 +69,13 @@ export class MinifierService {
         // This should be called after removing un-needed black color properties.
         this._shortenHexCodes(propertiesFlatMap);
 
-        // Combine color and opacity properties into a single color property.
-        // This should be called after removing un-needed black color properties.
-        //
-        // THIS HAS BEEN REMOVED, as it is not supported in GT Sport.
-        //
-        // this._mergeColorOpacity(propertiesFlatMap);
-
-        // GT Sport specific fixes.
-        this._fixForGTSport(parsed, svgOutputOptions.gtSportRadialGradientFix);
-
         // Ungroup groups
         this._explodeGroups(parsed);
+
+        // Apply the post-process functions for each element as defined by its type in SvgObjectType.
+        this._processIndividualElements('post', parsed, svgOutputOptions, {
+            [VariableNames.ViewBoxAspectRatio]: viewBoxAspectRatio
+        });
         
         // Console log
         parsed.printContents();
@@ -81,6 +84,23 @@ export class MinifierService {
 
         // TODO Remove "px".
 
+    }
+
+    private _calculateAspectRatio(svgRootObject: SvgObject): number {
+        const properties: {[key: string]: SvgObjectProperty} = svgRootObject.properties.propertyMap;        
+
+        // Check the root svgObject (which should be the 'svg' tagged element) for a viewBox property.
+        // This code assumes that the first two values of the viewBox property are both zeros.
+        //
+        // TODO Figure out what happens if the first two values are non-zero.
+        if (svgRootObject.type == SvgObjectType.Svg && 'viewBox' in properties) {
+            const viewBox: string[] = properties['viewBox'].value.split(" ");
+            const width: number = Number.parseFloat(viewBox[2]);
+            const height: number  = Number.parseFloat(viewBox[3]);
+            return width / height;
+        }
+
+        return null; // Should this return something else?
     }
 
     /**
@@ -92,7 +112,7 @@ export class MinifierService {
         for (let i = 0; i < children.length; i++) {
             const child = children[i];
             // TODO Add other element types that are not supported by GT Sport.
-            const display: SvgElementProperty = child.properties.propertyMap['display'];
+            const display: SvgObjectProperty = child.properties.propertyMap['display'];
             if (display && display.value  == "none" || !child.type.display) {
                 children.splice(i--, 1);
                 continue;
@@ -140,8 +160,8 @@ export class MinifierService {
         return defs;
     }
 
-    private _getPropertiesFlatMap(svgObject: SvgObject): SvgElementProperties[] {
-        const result: SvgElementProperties[] = [];
+    private _getPropertiesFlatMap(svgObject: SvgObject): SvgObjectProperties[] {
+        const result: SvgObjectProperties[] = [];
         result.push(svgObject.properties)
         for (const child of svgObject.children) {
             result.push(...this._getPropertiesFlatMap(child));
@@ -149,7 +169,7 @@ export class MinifierService {
         return result;
     }
 
-    private _idSubstitution(propertiesFlatMap: SvgElementProperties[]): void {
+    private _idSubstitution(propertiesFlatMap: SvgObjectProperties[]): void {
         const map: {[key: string]: IdProperties} = {};
         
         // Find all IDs and references
@@ -180,7 +200,7 @@ export class MinifierService {
     }
 
     /** Helper function for _idSubstitution(). */
-    private _findIdReferences(propertiesFlatMap: SvgElementProperties[], map: {[key: string]: IdProperties}): void {
+    private _findIdReferences(propertiesFlatMap: SvgObjectProperties[], map: {[key: string]: IdProperties}): void {
         propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
                 let value: string = properties[key].value;
@@ -241,7 +261,7 @@ export class MinifierService {
     }
 
     /** Helper function for _idSubstitution(). */
-    private _replaceIdReferences(propertiesFlatMap: SvgElementProperties[], map: {[key: string]: IdProperties}): void {
+    private _replaceIdReferences(propertiesFlatMap: SvgObjectProperties[], map: {[key: string]: IdProperties}): void {
         propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
                 const value: string = properties[key].value;
@@ -274,47 +294,8 @@ export class MinifierService {
         });
     }
 
-    /**
-     * Merges color and opacity properties into an rgba value.
-     * Example: <... stroke="#FAD9CF" stroke-opacity=".25" ...> will become
-     * <... stroke="rgba(250,217,207,.25)" ...> after the merge.
-     * 
-     * Currently unused, as it is not supported by GT Sport.
-     */
-    private _mergeColorOpacity(propertiesFlatMap: SvgElementProperties[]): void {
-
-        // TODO Move this somewhere else?
-        const colorOpacityPairs: {colorKey: string, opacityKey: string}[] = [
-            { colorKey: 'fill', opacityKey: 'fill-opacity' },
-            { colorKey: 'stroke', opacityKey: 'stroke-opacity' },
-            { colorKey: 'stop-color', opacityKey: 'stop-opacity' },
-        ];
-
-        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
-
-            colorOpacityPairs.forEach(keyPair => {
-                if (keyPair.colorKey in properties && keyPair.opacityKey in properties) {
-                    const colorValue = properties[keyPair.colorKey].value;
-                    
-                    // TODO Handle non hex color values.
-                    if (!ColorUtils.isHexColor(colorValue)) {
-                        return;
-                    }
-                    
-                    const color: Color = new Color();
-                    color.setFromHex(colorValue);
-                    color.alpha = Number.parseFloat(properties[keyPair.opacityKey].value);
-
-                    properties[keyPair.colorKey].value = color.toRGBAString(true);
-                    delete properties[keyPair.opacityKey];
-                }
-            });
-
-        });
-    }
-
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
-    private _shortenHexCodes(propertiesFlatMap: SvgElementProperties[]): void {
+    private _shortenHexCodes(propertiesFlatMap: SvgObjectProperties[]): void {
 
         propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
@@ -349,7 +330,7 @@ export class MinifierService {
     }
 
     /** Explodes style properties into separate properties. */
-    private _explodeStyles(propertiesFlatMap: SvgElementProperties[]): void {
+    private _explodeStyles(propertiesFlatMap: SvgObjectProperties[]): void {
         propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             if ('style' in properties) {
                 const style: {[key: string]: string} = StyleUtils.parseStyle(properties['style'].value);
@@ -358,12 +339,12 @@ export class MinifierService {
                 // TODO Find out which other styles can be exploded.
                 // Only the stop-color and stop-opacity are exploded for now.
                 if ('stop-color' in style) {
-                    properties['stop-color'] = new SvgElementProperty(style['stop-color']);
+                    properties['stop-color'] = new SvgObjectProperty(style['stop-color']);
                     delete style['stop-color'];
                     changed = true;
                 }
                 if ('stop-opacity' in style) {
-                    properties['stop-opacity'] = new SvgElementProperty(style['stop-opacity']);
+                    properties['stop-opacity'] = new SvgObjectProperty(style['stop-opacity']);
                     delete style['stop-opacity'];
                     changed = true;
                 }
@@ -382,8 +363,8 @@ export class MinifierService {
         });
     }
 
-    /** Removes properties that have no effect on an element. */
-    private _removeUnusedProperties(propertiesFlatMap: SvgElementProperties[], options: SvgOutputOptions): void {
+    /** Checks enitre SVG object tree and removes properties that have no effect on an element. */
+    private _removeUnusedProperties(propertiesFlatMap: SvgObjectProperties[], options: SvgOutputOptions): void {
 
         // Contains a list of properties that should always be removed.
         // TODO Move this somewhere else.
@@ -406,23 +387,6 @@ export class MinifierService {
 
                 const value: string = properties[key].value;
 
-                // Removes black colors for fill and stop-color, since no color defined will result in black anyways.
-                if ((key == 'fill' || key == 'stop-color') && ColorUtils.isBlack(value)) {
-                    delete properties[key];
-                }
-
-                // Removes stroke-miterlimit="4", since the value is 4 by default.
-                // TODO Move this to a service or utility for paths.
-                if (key == 'stroke-miterlimit' && value == "4") {
-                    delete properties[key];
-                }
-
-                // Remove miterlimit for non-miter linejoins.
-                // TODO Move this to a service or utility for paths.
-                if (key == 'stroke-linejoin' && value != "miter") {
-                    delete properties['stroke-miterlimit'];
-                }
-
                 // Removes the leading 0 in decimal values that are less than 1.
                 if (!value.indexOf("0.")) {
                     properties[key].value = value.substring(1);
@@ -438,104 +402,12 @@ export class MinifierService {
         });
     }
 
-    /** Attempts to fix various issues that GT Sport has with the SVG standards. */
-    private _fixForGTSport(svgObject: SvgObject, fixRadialGradients: boolean, aspectRatio?: number): void {
-
-        // Get properties map for current SVG element.
-        const properties: {[key: string]: SvgElementProperty} = svgObject.properties.propertyMap;        
-
-        // Check the root svgObject (which should be the 'svg' tagged element) for a viewBox property.
-        // If the aspect ratio of the view box is portrait (height > width), then there is a bug in
-        // GT Sport that renders radialGradients with incorrect radius. If this is the case, then the
-        // radius of every radial gradient will have to be multiplied by the aspect ratio to be displayed
-        // correctly. This code assumes that the first two values of the viewBox property are both zeros.
-        //
-        // TODO Figure out what happens if the first two values are non-zero.
-        if (fixRadialGradients && !aspectRatio && svgObject.type == SvgObjectType.Svg) {
-
-            if ('viewBox' in properties) {
-                const viewBox: string[] = properties['viewBox'].value.split(" ");
-                const width: number = Number.parseFloat(viewBox[2]);
-                const height: number  = Number.parseFloat(viewBox[3]);
-
-                // Radial gradients should work propertly in this case and does not need to be fixed.
-                if (width >= height) {
-                    fixRadialGradients = false; 
-                }
-
-                // Calculate the aspect ratio and apply it to the radii later.
-                else {
-                    aspectRatio = width / height;
-                }
-            }
-        }
-
-        // Apply aspect ratio correction to the radius of radial gradients if needed.
-        if (fixRadialGradients && aspectRatio && svgObject.type == SvgObjectType.RadialGradient && 'r' in properties) {
-            const radius: number = Number.parseFloat(properties['r'].value);
-
-            // TODO Determine the required precision.
-            properties['r'].value = this._decimalPipe.transform(aspectRatio * radius, "1.0-2");
-        }
-
-        // Applies the gradientTransform matrix to the gradient itself,
-        // since GT Sport does not support tranformation matrices on gradients.
-        //
-        // FIXME Add sanity checks.
-        // TODO Move this to a service or utility for gradients.
-        if ('gradientTransform' in properties) {
-            const gradientTransform: string = properties['gradientTransform'].value;
-
-            // Assumes that the property starts with "matrix(" and ends with ")".
-            const values: string[] = gradientTransform.substring(7, gradientTransform.length - 1).split(" ");
-
-            // Assumes that all values are valid numbers.
-            const matrix: TransformMatrix = new TransformMatrix(...values.map(v => Number(v)));
-
-            // FIXME The above two opertaion are a waste if the if-statements below all evaluate to false.
-
-            // linearGradient
-            if ('x1' in properties && 'y1' in properties && 'x2' in properties && 'y2' in properties) {
-                
-                // Assumes that all values are valid numbers.
-                const start: number[] = MathUtils.transformPoint(Number(properties['x1'].value), Number(properties['y1'].value), matrix.toArray());
-                const end: number[] = MathUtils.transformPoint(Number(properties['x2'].value), Number(properties['y2'].value), matrix.toArray());
-
-                // TODO Determine the required precision.
-                properties['x1'].value = this._decimalPipe.transform(start[0], "1.0-3");
-                properties['y1'].value = this._decimalPipe.transform(start[1], "1.0-3");
-                properties['x2'].value = this._decimalPipe.transform(end[0], "1.0-3");
-                properties['y2'].value = this._decimalPipe.transform(end[1], "1.0-3");
-                delete properties['gradientTransform'];
-            }
-
-            // radialGradients
-            else if ('cx' in properties && 'cy' in properties && 'r' in properties) {
-
-                // Assumes that all values are valid numbers.
-                const center: number[] = MathUtils.transformPoint(Number(properties['cx'].value), Number(properties['cy'].value), matrix.toArray());
-
-                // TODO Determine the required precision.
-                properties['cx'].value = this._decimalPipe.transform(center[0], "1.0-2");
-                properties['cy'].value = this._decimalPipe.transform(center[1], "1.0-2");
-                properties['r'].value = this._decimalPipe.transform(MathUtils.transformVector(Number(properties['r'].value), undefined, matrix.toArray())[0], "1.0-3");
-                delete properties['gradientTransform'];
-            }
-        }
-
-        // Call recursively to traverse through children.
-        svgObject.children.forEach(child => {
-            this._fixForGTSport(child, fixRadialGradients, aspectRatio);
-        });
-
-    }
-
     /** Ungroups the groups that have no special properties. */
     private _explodeGroups(svgObject: SvgObject): void {
         const children: SvgObject[] = svgObject.children;
         const newChildren: SvgObject[] = [];
         let changed: boolean = false;
-        for (const child of children) {
+        children.forEach(child => {
             this._explodeGroups(child);
             if (child.type == SvgObjectType.Group && !child.properties.hasProperties) {
                 newChildren.push(...child.children);
@@ -544,11 +416,23 @@ export class MinifierService {
             else {
                 newChildren.push(child);
             }
-        }
+        });
         if (changed) {
             children.splice(0, children.length);
             children.push(...newChildren);
         }
+    }
+
+    /** Calls process functions on each individual SVG element, as defined by their SvgObjectType. */
+    private _processIndividualElements(op: 'pre' | 'post', svgObject: SvgObject, options: SvgOutputOptions, extras: any) {
+        const functions: ProcessFunctions = op == 'pre' ? svgObject.type.preProcessFunctions : svgObject.type.postProcessFunctions;
+        functions && functions.forEach(fn => {
+            fn(svgObject, options, extras);
+        });
+        const children: SvgObject[] = svgObject.children;
+        children.forEach(child => {
+            this._processIndividualElements(op, child, options, extras);
+        });
     }
 
 }

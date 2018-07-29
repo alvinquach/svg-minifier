@@ -2,10 +2,26 @@
     <input #fileInput type="file" accept=".svg" (change)="markForCheck()"/>
 </div>
 
-<div class="process-options" fxLayout="row" fxLayout.xs="column" fxLayoutAlign="center center">
-    <mat-checkbox [(ngModel)]="svgOutputOptions.indent">Output indents and line breaks</mat-checkbox>
-    <mat-checkbox [(ngModel)]="svgOutputOptions.gtSportRadialGradientFix">Fix radial gradient</mat-checkbox>
-    <button mat-raised-button (click)="process()" color="accent" [disabled]="!hasFiles()">MINIFY</button>    
+<div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
+    
+    <button mat-raised-button [matMenuTriggerFor]="svgOutputOptionsMenu" color="accent">SETTINGS</button>
+    <button mat-raised-button (click)="process()" color="primary" [disabled]="!hasFiles()">MINIFY</button>
+
+    <mat-menu #svgOutputOptionsMenu="matMenu" [overlapTrigger]="false">
+        <div class="process-options" (click)="$event.stopPropagation()">
+            <div class="buttons" fxLayout="row" fxLayoutGap="16px">
+                <button mat-stroked-button color="primary" (click)="gtSportOptionsPreset()">GT SPORT PRESET</button>
+                <button mat-stroked-button color="warn" (click)="clearOptions()">CLEAR</button>
+            </div>
+            <div class="checkboxes" fxLayout="column" fxLayoutGap="8px">
+                <mat-checkbox [(ngModel)]="svgOutputOptions.outputSingleLine">Output single line</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgOutputOptions.minifyElementIds">Minify element IDs</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgOutputOptions.gtSportFixGradientTransform">Fix gradient transforms</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgOutputOptions.gtSportFixRadialGradients">Fix radial gradients</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgOutputOptions.gtSportRemoveMiterLimits">Remove miter limits</mat-checkbox>
+            </div>
+        </div>
+    </mat-menu>
 </div>
 
 <div class="svg-contents-container" fxLayoutWrap>
