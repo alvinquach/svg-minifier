@@ -70,7 +70,7 @@ export class MinifierService {
         this._shortenHexCodes(propertiesFlatMap);
 
         // Ungroup groups
-        this._explodeGroups(parsed);
+        this._explodeGroups(parsed, svgOutputOptions);
 
         // Apply the post-process functions for each element as defined by its type in SvgObjectType.
         this._processIndividualElements('post', parsed, svgOutputOptions, {
@@ -403,13 +403,16 @@ export class MinifierService {
     }
 
     /** Ungroups the groups that have no special properties. */
-    private _explodeGroups(svgObject: SvgObject): void {
+    private _explodeGroups(svgObject: SvgObject, options: SvgOutputOptions): void {
         const children: SvgObject[] = svgObject.children;
         const newChildren: SvgObject[] = [];
         let changed: boolean = false;
         children.forEach(child => {
-            this._explodeGroups(child);
-            if (child.type == SvgObjectType.Group && !child.properties.hasProperties) {
+            this._explodeGroups(child, options);
+            if (child.type == SvgObjectType.Group && 
+                (!child.properties.hasProperties ||
+                !options.minifyElementIds && this._groupOnlyHasId(child))) {
+
                 newChildren.push(...child.children);
                 changed = true;
             }
@@ -421,6 +424,22 @@ export class MinifierService {
             children.splice(0, children.length);
             children.push(...newChildren);
         }
+    }
+
+    /** 
+     * Helper method for _explodeGroups that determines whether 
+     * the only property that the element has is "id". 
+     */
+    private _groupOnlyHasId(svgObject: SvgObject): boolean {
+        const properties: SvgObjectProperties = svgObject.properties;
+        if (!properties.hasProperties) {
+            return false;
+        }
+        const propertyKeys: string[] = Object.keys(properties.propertyMap);
+        if (propertyKeys.length > 1) {
+            return false;
+        }
+        return propertyKeys.indexOf('id') == 0;
     }
 
     /** Calls process functions on each individual SVG element, as defined by their SvgObjectType. */
