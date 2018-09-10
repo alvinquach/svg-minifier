@@ -4,7 +4,7 @@ import { SvgObjectProperties } from "../classes/svg/object/property/svg-object-p
 import { SvgObjectProperty } from "../classes/svg/object/property/svg-object-property.class";
 import { SvgObjectType } from "../classes/svg/object/svg-object-type.class";
 import { SvgObject } from "../classes/svg/object/svg-object.class";
-import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
+import { SvgMinifyOptions } from "../classes/svg/options/svg-minify-options.class";
 import { ProcessFunctions } from "../defs/type/process-function.type";
 import { VariableNames } from "../defs/variable-names";
 import { ColorUtils } from "../utils/color.utils";
@@ -22,7 +22,7 @@ export class MinifierService {
 
     }
 
-    minify(data: string, svgOutputOptions?: SvgOutputOptions): string {
+    minify(data: string, SvgMinifyOptions?: SvgMinifyOptions): string {
         
         // Remove all tabs and line breaks.
         let result: string = data.replace(/\r?\n|\r|\t/g, "");
@@ -53,34 +53,34 @@ export class MinifierService {
         this._explodeStyles(propertiesFlatMap);
 
         // Replace IDs and references with minified version, if the option was selected.
-        if (svgOutputOptions.minifyElementIds) {
+        if (SvgMinifyOptions.minifyElementIds) {
             this._idSubstitution(propertiesFlatMap);
         }
 
         // Apply the pre-process functions for each element as defined by its type in SvgObjectType.
-        this._processIndividualElements('pre', parsed, svgOutputOptions, {
+        this._processIndividualElements('pre', parsed, SvgMinifyOptions, {
             [VariableNames.ViewBoxAspectRatio]: viewBoxAspectRatio
         });
         
         // Removes properties that have no effect on an element.
-        this._removeUnusedProperties(propertiesFlatMap, svgOutputOptions);
+        this._removeUnusedProperties(propertiesFlatMap, SvgMinifyOptions);
 
         // Shorten color hex codes (ie #DDFF00 --> #DF0).
         // This should be called after removing un-needed black color properties.
         this._shortenHexCodes(propertiesFlatMap);
 
         // Ungroup groups
-        this._explodeGroups(parsed, svgOutputOptions);
+        this._explodeGroups(parsed, SvgMinifyOptions);
 
         // Apply the post-process functions for each element as defined by its type in SvgObjectType.
-        this._processIndividualElements('post', parsed, svgOutputOptions, {
+        this._processIndividualElements('post', parsed, SvgMinifyOptions, {
             [VariableNames.ViewBoxAspectRatio]: viewBoxAspectRatio
         });
         
         // Console log
         parsed.printContents();
 
-        return this._svgWriter.writeAsString(parsed, svgOutputOptions && svgOutputOptions.outputSingleLine ? undefined : '\t');
+        return this._svgWriter.writeAsString(parsed, SvgMinifyOptions && SvgMinifyOptions.outputSingleLine ? undefined : '\t');
 
         // TODO Remove "px".
 
@@ -364,7 +364,7 @@ export class MinifierService {
     }
 
     /** Checks enitre SVG object tree and removes properties that have no effect on an element. */
-    private _removeUnusedProperties(propertiesFlatMap: SvgObjectProperties[], options: SvgOutputOptions): void {
+    private _removeUnusedProperties(propertiesFlatMap: SvgObjectProperties[], options: SvgMinifyOptions): void {
 
         // Contains a list of properties that should always be removed.
         // TODO Move this somewhere else.
@@ -403,7 +403,7 @@ export class MinifierService {
     }
 
     /** Ungroups the groups that have no special properties. */
-    private _explodeGroups(svgObject: SvgObject, options: SvgOutputOptions): void {
+    private _explodeGroups(svgObject: SvgObject, options: SvgMinifyOptions): void {
         const children: SvgObject[] = svgObject.children;
         const newChildren: SvgObject[] = [];
         let changed: boolean = false;
@@ -443,7 +443,7 @@ export class MinifierService {
     }
 
     /** Calls process functions on each individual SVG element, as defined by their SvgObjectType. */
-    private _processIndividualElements(op: 'pre' | 'post', svgObject: SvgObject, options: SvgOutputOptions, extras: any) {
+    private _processIndividualElements(op: 'pre' | 'post', svgObject: SvgObject, options: SvgMinifyOptions, extras: any) {
         const functions: ProcessFunctions = op == 'pre' ? svgObject.type.preProcessFunctions : svgObject.type.postProcessFunctions;
         functions && functions.forEach(fn => {
             fn(svgObject, options, extras);

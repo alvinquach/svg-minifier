@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
 import { MinifierService } from "../../../services/minifier.service";
-import { SvgOutputOptions } from "../../../classes/svg/options/svg-output-options.class";
+import { SvgMinifyOptions } from "../../../classes/svg/options/svg-minify-options.class";
 
 @Component({
     selector: 'app-single-minifier',
@@ -13,7 +13,7 @@ export class SingleMinifierComponent implements AfterViewInit {
 
     @ViewChild('resultsContainer') resultsContainer: ElementRef;
     
-    private _svgOutputOptions: SvgOutputOptions = new SvgOutputOptions();
+    private _SvgMinifyOptions: SvgMinifyOptions = new SvgMinifyOptions();
 
     private _fileContents: string;
 
@@ -25,8 +25,8 @@ export class SingleMinifierComponent implements AfterViewInit {
 
     }
 
-    get svgOutputOptions(): SvgOutputOptions {
-        return this._svgOutputOptions;
+    get SvgMinifyOptions(): SvgMinifyOptions {
+        return this._SvgMinifyOptions;
     }
 
     get fileContents(): string {
@@ -46,16 +46,16 @@ export class SingleMinifierComponent implements AfterViewInit {
     }
 
     clearOptions() {
-        for (const key in this._svgOutputOptions) {
-            this._svgOutputOptions[key] = false;
+        for (const key in this._SvgMinifyOptions) {
+            this._SvgMinifyOptions[key] = false;
         }
     }
 
     gtSportOptionsPreset() {
-        this._svgOutputOptions.minifyElementIds = true;
-        this._svgOutputOptions.gtSportFixGradientTransform = true;
-        this._svgOutputOptions.gtSportFixRadialGradients = true;
-        this._svgOutputOptions.gtSportRemoveMiterLimits = true;
+        this._SvgMinifyOptions.minifyElementIds = true;
+        this._SvgMinifyOptions.gtSportFixGradientTransform = true;
+        this._SvgMinifyOptions.gtSportFixRadialGradients = true;
+        this._SvgMinifyOptions.gtSportRemoveMiterLimits = true;
     }
 
     hasFiles(): boolean {
@@ -68,7 +68,7 @@ export class SingleMinifierComponent implements AfterViewInit {
             const reader: FileReader = new FileReader();
             reader.onload = (event: ProgressEvent) => {
                 this._fileContents = (<FileReader>event.target).result;
-                this._results = this._minifierService.minify(this.fileContents, this._svgOutputOptions);
+                this._results = this._minifierService.minify(this.fileContents, this._SvgMinifyOptions);
             }
             reader.readAsText(files[0]);
         }

@@ -1,4 +1,4 @@
-export class SvgOutputOptions {
+export class SvgMinifyOptions {
 
     // TODO Let user specify the indentation type.
     /** Whether to output the entire markup on a single line. */

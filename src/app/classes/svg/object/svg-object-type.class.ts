@@ -1,6 +1,4 @@
-import { SvgObject } from "./svg-object.class";
-import { SvgOutputOptions } from "../options/svg-output-options.class";
-import { removeDefaultStopColor, fixGTSportRaidalGradient, removeDefaultStrokeMiter } from "../../../defs/svg-object-type-functions";
+import { fixGTSportRaidalGradient, removeDefaultStopColor, removeDefaultStrokeMiter } from "../../../defs/svg-object-type-functions";
 import { ProcessFunctions } from "../../../defs/type/process-function.type";
 
 export class SvgObjectType {

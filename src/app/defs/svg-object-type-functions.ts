@@ -1,11 +1,11 @@
 import { TransformMatrix } from "../classes/matrix/transform-matrix.class";
 import { SvgObjectProperty } from "../classes/svg/object/property/svg-object-property.class";
 import { SvgObject } from "../classes/svg/object/svg-object.class";
-import { SvgOutputOptions } from "../classes/svg/options/svg-output-options.class";
+import { SvgMinifyOptions } from "../classes/svg/options/svg-minify-options.class";
 import { ColorUtils } from "../utils/color.utils";
 import { MathUtils } from "../utils/math.utils";
 import { VariableNames } from "./variable-names";
-import { DecimalPipe } from "../../../node_modules/@angular/common";
+import { DecimalPipe } from "@angular/common";
 
 
 const _DecimalPipe: DecimalPipe = new DecimalPipe("en-US");
@@ -14,7 +14,7 @@ const _DecimalPipe: DecimalPipe = new DecimalPipe("en-US");
  * Applies the gradientTransform matrix to the gradient itself, since GT Sport does not
  * support tranformation matrices on gradients.
  */
-export const fixGTSportGradientTransform = (object: SvgObject, options: SvgOutputOptions, extras: any) => {
+export const fixGTSportGradientTransform = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
     const properties = object.properties.propertyMap;
     if (!options.gtSportFixGradientTransform || !('gradientTransform' in properties)) {
         return;
@@ -63,7 +63,7 @@ export const fixGTSportGradientTransform = (object: SvgObject, options: SvgOutpu
  * that renders radialGradients with incorrect radius. If this is the case, then the radius of every
  * radial gradient will have to be multiplied by the aspect ratio to be displayed correctly.
  */
-export const fixGTSportRaidalGradient = (object: SvgObject, options: SvgOutputOptions, extras: any) => {
+export const fixGTSportRaidalGradient = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
     const aspectRatio: number = extras && extras[VariableNames.ViewBoxAspectRatio]; // TODO type check
 
     // Radial gradients should work properly if aspect ratio is 1.0 or greater and does not need to be fixed.
@@ -81,7 +81,7 @@ export const fixGTSportRaidalGradient = (object: SvgObject, options: SvgOutputOp
 }
 
 /** Removes fill property if it has a default (black) color value. */
-export const removeDefaultFill = (object: SvgObject, options: SvgOutputOptions, extras: any) => {
+export const removeDefaultFill = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
     const properties = object.properties.propertyMap;
     if ('fill' in properties && ColorUtils.isBlack(properties['fill'].value)) {
         delete properties['fill'];
@@ -89,7 +89,7 @@ export const removeDefaultFill = (object: SvgObject, options: SvgOutputOptions, 
 };
 
 /** Removes stop-color property if it has a default (black) color value. */
-export const removeDefaultStopColor = (object: SvgObject, options: SvgOutputOptions, extras: any) => {
+export const removeDefaultStopColor = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
     const properties = object.properties.propertyMap;
     if ('stop-color' in properties && ColorUtils.isBlack(properties['stop-color'].value)) {
         delete properties['stop-color'];
@@ -103,7 +103,7 @@ export const removeDefaultStopColor = (object: SvgObject, options: SvgOutputOpti
  * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-linejoin
  * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-miterlimit
  */
-export const removeDefaultStrokeMiter = (object: SvgObject, options: SvgOutputOptions, extras: any) => {
+export const removeDefaultStrokeMiter = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
     const properties = object.properties.propertyMap;
     const strokeLinejoin: SvgObjectProperty = properties['stroke-linejoin'];
     let isMiter: boolean = false;
