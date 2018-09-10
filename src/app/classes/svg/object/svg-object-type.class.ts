@@ -29,6 +29,12 @@ export class SvgObjectType {
         display: true
     }
 
+    /** filter */
+    static readonly Filter: SvgObjectType = {
+        tag: 'filter',
+        display: false
+    }
+
     /** g */
     static readonly Group: SvgObjectType = {
         tag: 'g',
@@ -55,6 +61,12 @@ export class SvgObjectType {
     static readonly LinearGradient: SvgObjectType = {
         tag: 'linearGradient',
         display: true
+    }
+
+    /** mask */
+    static readonly Mask: SvgObjectType = {
+        tag: 'mask',
+        display: false
     }
 
     /** path */
