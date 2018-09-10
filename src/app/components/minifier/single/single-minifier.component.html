@@ -1,24 +1,36 @@
+<div *ngIf="enableDevFeatures" class="dev-mode-message">
+    DEV FEATURES ENABLED
+</div>
+
 <div class="upload-container">
     <input #fileInput type="file" accept=".svg" (change)="markForCheck()"/>
 </div>
 
 <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
     
-    <button mat-raised-button [matMenuTriggerFor]="SvgMinifyOptionsMenu" color="accent">SETTINGS</button>
+    <button mat-raised-button [matMenuTriggerFor]="svgMinifyOptionsMenu" color="accent">SETTINGS</button>
     <button mat-raised-button (click)="process()" color="primary" [disabled]="!hasFiles()">MINIFY</button>
 
-    <mat-menu #SvgMinifyOptionsMenu="matMenu" [overlapTrigger]="false">
+    <mat-menu #svgMinifyOptionsMenu="matMenu" [overlapTrigger]="false">
         <div class="process-options" (click)="$event.stopPropagation()">
             <div class="buttons" fxLayout="row" fxLayoutGap="16px">
                 <button mat-stroked-button color="primary" (click)="gtSportOptionsPreset()">GT SPORT PRESET</button>
                 <button mat-stroked-button color="warn" (click)="clearOptions()">CLEAR</button>
             </div>
             <div class="checkboxes" fxLayout="column" fxLayoutGap="8px">
-                <mat-checkbox [(ngModel)]="SvgMinifyOptions.outputSingleLine">Output single line</mat-checkbox>
-                <mat-checkbox [(ngModel)]="SvgMinifyOptions.minifyElementIds">Minify element IDs</mat-checkbox>
-                <mat-checkbox [(ngModel)]="SvgMinifyOptions.gtSportFixGradientTransform">Fix gradient transforms</mat-checkbox>
-                <mat-checkbox [(ngModel)]="SvgMinifyOptions.gtSportFixRadialGradients">Fix radial gradients</mat-checkbox>
-                <mat-checkbox [(ngModel)]="SvgMinifyOptions.gtSportRemoveMiterLimits">Remove miter limits</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgMinifyOptions.outputSingleLine">Output single line</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgMinifyOptions.minifyElementIds">Minify element IDs</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportFixGradientTransform">Fix gradient transforms</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportFixRadialGradients">Fix radial gradients</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportRemoveMiterLimits">Remove miter limits</mat-checkbox>
+            </div>
+            <div *ngIf="enableDevFeatures">
+                <div class="subheader">
+                    Dev Features
+                </div>
+                <div class="checkboxes" fxLayout="column" fxLayoutGap="8px">
+                    <mat-checkbox [(ngModel)]="svgMinifyOptions.groupGradients">Group gradients</mat-checkbox>
+                </div>
             </div>
         </div>
     </mat-menu>

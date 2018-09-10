@@ -12,3 +12,15 @@ html {
 .mat-drawer-container {
 	background: #FFF;
 }
+
+.dev-mode-message {
+	color: red;
+	padding: 8px;
+}
+
+.subheader {
+	line-height: 48px;
+	font-size: 14px;
+	font-weight: 500;
+	color: rgba(0,0,0,0.54);
+}

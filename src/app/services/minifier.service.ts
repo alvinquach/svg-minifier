@@ -11,6 +11,7 @@ import { ColorUtils } from "../utils/color.utils";
 import { StyleUtils } from "../utils/style.utils";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
+import { DevFeatureService } from "./dev-feature.service";
 
 
 @Injectable()
@@ -18,11 +19,13 @@ export class MinifierService {
 
     private _decimalPipe: DecimalPipe = new DecimalPipe("en-US");
 
-    constructor(private _svgParser: SvgParserService, private _svgWriter: SvgWriterService) {
+    constructor(private _svgParser: SvgParserService,
+                private _svgWriter: SvgWriterService,
+                private _devFeatures: DevFeatureService) {
 
     }
 
-    minify(data: string, SvgMinifyOptions?: SvgMinifyOptions): string {
+    minify(data: string, svgMinifyOptions?: SvgMinifyOptions): string {
         
         // Remove all tabs and line breaks.
         let result: string = data.replace(/\r?\n|\r|\t/g, "");
@@ -36,6 +39,11 @@ export class MinifierService {
 
         // Aspect ratio of the view box.
         const viewBoxAspectRatio: number = this._calculateAspectRatio(parsed);
+
+        // Apply the "Group Gradient" dev feature.
+        if (svgMinifyOptions.groupGradients) {
+            this._devFeatures.groupGradients(parsed);
+        }
         
         // Remove elements that will not be displayed in GT Sport.
         this._removeNoDisplay(parsed);
@@ -53,34 +61,34 @@ export class MinifierService {
         this._explodeStyles(propertiesFlatMap);
 
         // Replace IDs and references with minified version, if the option was selected.
-        if (SvgMinifyOptions.minifyElementIds) {
+        if (svgMinifyOptions.minifyElementIds) {
             this._idSubstitution(propertiesFlatMap);
         }
 
         // Apply the pre-process functions for each element as defined by its type in SvgObjectType.
-        this._processIndividualElements('pre', parsed, SvgMinifyOptions, {
+        this._processIndividualElements('pre', parsed, svgMinifyOptions, {
             [VariableNames.ViewBoxAspectRatio]: viewBoxAspectRatio
         });
         
         // Removes properties that have no effect on an element.
-        this._removeUnusedProperties(propertiesFlatMap, SvgMinifyOptions);
+        this._removeUnusedProperties(propertiesFlatMap, svgMinifyOptions);
 
         // Shorten color hex codes (ie #DDFF00 --> #DF0).
         // This should be called after removing un-needed black color properties.
         this._shortenHexCodes(propertiesFlatMap);
 
         // Ungroup groups
-        this._explodeGroups(parsed, SvgMinifyOptions);
+        this._explodeGroups(parsed, svgMinifyOptions);
 
         // Apply the post-process functions for each element as defined by its type in SvgObjectType.
-        this._processIndividualElements('post', parsed, SvgMinifyOptions, {
+        this._processIndividualElements('post', parsed, svgMinifyOptions, {
             [VariableNames.ViewBoxAspectRatio]: viewBoxAspectRatio
         });
         
         // Console log
         parsed.printContents();
 
-        return this._svgWriter.writeAsString(parsed, SvgMinifyOptions && SvgMinifyOptions.outputSingleLine ? undefined : '\t');
+        return this._svgWriter.writeAsString(parsed, svgMinifyOptions && svgMinifyOptions.outputSingleLine ? undefined : '\t');
 
         // TODO Remove "px".
 

@@ -1,6 +1,7 @@
-import { SingleMinifierComponent } from "../components/minifier/single/single-minifier.component";
-import { MinifierService } from "../services/minifier.service";
 import { NgModule } from "@angular/core";
+import { SingleMinifierComponent } from "../components/minifier/single/single-minifier.component";
+import { DevFeatureService } from "../services/dev-feature.service";
+import { MinifierService } from "../services/minifier.service";
 import { CommonsModule } from "./commons.module";
 
 @NgModule({
@@ -11,7 +12,8 @@ import { CommonsModule } from "./commons.module";
 		SingleMinifierComponent,
 	],
     providers: [
-        MinifierService
+        MinifierService,
+        DevFeatureService
     ]
 })
 export class MinifierModule {}

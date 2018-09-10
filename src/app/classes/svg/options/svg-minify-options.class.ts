@@ -16,4 +16,7 @@ export class SvgMinifyOptions {
     /** GT Sport ignores the stroke-miterlimit property (always uses 4), so it can be removed for optimization. */
     gtSportRemoveMiterLimits: boolean = false;
 
+    /** DEV FEATURE */
+    groupGradients: boolean = false;
+
 }

@@ -1,19 +1,20 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
-import { MinifierService } from "../../../services/minifier.service";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild, OnInit } from "@angular/core";
+import { ActivatedRoute, UrlSegment } from "@angular/router";
 import { SvgMinifyOptions } from "../../../classes/svg/options/svg-minify-options.class";
+import { MinifierService } from "../../../services/minifier.service";
 
 @Component({
     selector: 'app-single-minifier',
     templateUrl: './single-minifier.component.html',
     styleUrls: ['./single-minifier.component.scss']
 })
-export class SingleMinifierComponent implements AfterViewInit {
+export class SingleMinifierComponent implements OnInit, AfterViewInit {
 
     @ViewChild('fileInput') fileInput: ElementRef;
 
     @ViewChild('resultsContainer') resultsContainer: ElementRef;
     
-    private _SvgMinifyOptions: SvgMinifyOptions = new SvgMinifyOptions();
+    private _svgMinifyOptions: SvgMinifyOptions = new SvgMinifyOptions();
 
     private _fileContents: string;
 
@@ -21,12 +22,16 @@ export class SingleMinifierComponent implements AfterViewInit {
 
     private _inputEl: HTMLInputElement;
 
-    constructor(private _cd: ChangeDetectorRef, private _minifierService: MinifierService) {
+    private _enableDevFeatures: boolean;
+
+    constructor(private _cd: ChangeDetectorRef, 
+                private _minifierService: MinifierService,
+                private _activatedRoute: ActivatedRoute) {
 
     }
 
-    get SvgMinifyOptions(): SvgMinifyOptions {
-        return this._SvgMinifyOptions;
+    get svgMinifyOptions(): SvgMinifyOptions {
+        return this._svgMinifyOptions;
     }
 
     get fileContents(): string {
@@ -35,6 +40,16 @@ export class SingleMinifierComponent implements AfterViewInit {
 
     get results(): string {
         return this._results;
+    }
+
+    get enableDevFeatures(): boolean {
+        return this._enableDevFeatures;
+    }
+
+    ngOnInit(): void {
+        const urlSegments: UrlSegment[] = this._activatedRoute.snapshot.url;
+        const lastSegment: string = urlSegments[urlSegments.length - 1].path;
+        this._enableDevFeatures = lastSegment === 'dev';
     }
 
     ngAfterViewInit(): void {
@@ -46,16 +61,16 @@ export class SingleMinifierComponent implements AfterViewInit {
     }
 
     clearOptions() {
-        for (const key in this._SvgMinifyOptions) {
-            this._SvgMinifyOptions[key] = false;
+        for (const key in this._svgMinifyOptions) {
+            this._svgMinifyOptions[key] = false;
         }
     }
 
     gtSportOptionsPreset() {
-        this._SvgMinifyOptions.minifyElementIds = true;
-        this._SvgMinifyOptions.gtSportFixGradientTransform = true;
-        this._SvgMinifyOptions.gtSportFixRadialGradients = true;
-        this._SvgMinifyOptions.gtSportRemoveMiterLimits = true;
+        this._svgMinifyOptions.minifyElementIds = true;
+        this._svgMinifyOptions.gtSportFixGradientTransform = true;
+        this._svgMinifyOptions.gtSportFixRadialGradients = true;
+        this._svgMinifyOptions.gtSportRemoveMiterLimits = true;
     }
 
     hasFiles(): boolean {
@@ -68,7 +83,7 @@ export class SingleMinifierComponent implements AfterViewInit {
             const reader: FileReader = new FileReader();
             reader.onload = (event: ProgressEvent) => {
                 this._fileContents = (<FileReader>event.target).result;
-                this._results = this._minifierService.minify(this.fileContents, this._SvgMinifyOptions);
+                this._results = this._minifierService.minify(this.fileContents, this._svgMinifyOptions);
             }
             reader.readAsText(files[0]);
         }
