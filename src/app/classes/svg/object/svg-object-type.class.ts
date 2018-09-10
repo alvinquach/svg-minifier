@@ -6,6 +6,7 @@ export class SvgObjectType {
     /** circle */
     static readonly Circle: SvgObjectType = {
         tag: 'circle',
+        isPathItem: true,
         display: true
     }
 
@@ -18,6 +19,7 @@ export class SvgObjectType {
     /** ellipse */
     static readonly Ellipse: SvgObjectType = {
         tag: 'ellipse',
+        isPathItem: true,
         display: true
     }
 
@@ -42,6 +44,7 @@ export class SvgObjectType {
     /** line */
     static readonly Line: SvgObjectType = {
         tag: 'line',
+        isPathItem: true,
         display: true,
         postProcessFunctions: [
             removeDefaultStrokeMiter
@@ -57,6 +60,7 @@ export class SvgObjectType {
     /** path */
     static readonly Path: SvgObjectType = {
         tag: 'path',
+        isPathItem: true,
         display: true,
         postProcessFunctions: [
             removeDefaultStrokeMiter
@@ -66,6 +70,7 @@ export class SvgObjectType {
     /** polygon */
     static readonly Polygon: SvgObjectType = {
         tag: 'polygon',
+        isPathItem: true,
         display: true,
         postProcessFunctions: [
             removeDefaultStrokeMiter
@@ -75,6 +80,7 @@ export class SvgObjectType {
     /** polyline */
     static readonly Polyline: SvgObjectType = {
         tag: 'polyline',
+        isPathItem: true,
         display: true,
         postProcessFunctions: [
             removeDefaultStrokeMiter
@@ -93,6 +99,7 @@ export class SvgObjectType {
     /** rect */
     static readonly Rectangle: SvgObjectType = {
         tag: 'rect',
+        isPathItem: true,
         display: true,
         postProcessFunctions: [
             removeDefaultStrokeMiter
@@ -135,6 +142,8 @@ export class SvgObjectType {
     private static _tagMap: {[key: string]: SvgObjectType};
 
     readonly tag: string;
+
+    readonly isPathItem?: boolean;
 
     readonly display: boolean;
 
