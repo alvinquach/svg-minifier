@@ -304,34 +304,12 @@ export class MinifierService {
 
     /** Shortens color hex codes (ie #DDFF00 --> #DF0). */
     private _shortenHexCodes(propertiesFlatMap: SvgObjectProperties[]): void {
-
+        const longHexCodePattern = new RegExp(/^#[0-9a-f]{6}/i);
         propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
             for (const key in properties) {
-
-                let value: string = properties[key].value;
-                let changed: boolean = false;
-
-                // Find all hex color codes in the value.
-                const hexColors: string[] = value.match(/#[0-9a-f]{6}/gi);
-
-                // Move on if no match.
-                if (!hexColors || !hexColors.length) {
-                    continue;
-                }
-
-                // Replace the hex color codes with the shorthand form, if any.
-                for (let i = 0; i < hexColors.length; i++) {
-                    const hex: string = hexColors[i];
-                    const shortHex: string = ColorUtils.hexToShortHex(hex);
-                    if (shortHex) {
-                        value = value.replace(hex, shortHex);
-                        changed = true;
-                    }
-                }
-
-                // Update the value of the property.
-                if (changed) {
-                    properties[key].value = value;
+                const value: string = properties[key].value;
+                if (longHexCodePattern.test(value)) {
+                    properties[key].value = ColorUtils.hexToShortHex(value);
                 }
             }
         });
