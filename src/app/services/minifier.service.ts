@@ -246,14 +246,28 @@ export class MinifierService {
         const currentId: number[] = [65];
 
         const incrementId = (o: number[]) => {
-            if (o[o.length - 1] < 90) {
-                o[o.length - 1] += 1;
-            }
-            else {
-                for (let i = 0; i < o.length; i++) {
-                    o[i] = 65;
+        
+            // TODO Use all available valid characters.
+
+            // Loop through all the digits, starting at the least signification place.
+            for (let i = o.length - 1; i >= 0; i--) {
+
+                // If digit can be incremented, then stop here.
+                if (o[i] < 90) {
+                    o[i] += 1;
+                    break;
                 }
-                o.push(65);
+
+                // Else reset digit to lowest value, and carry over.
+                else {
+                    o[i] = 65;
+
+                    // If cannot carry over anymore, then add a new digit in front.
+                    if (i == 0) {
+                        o.unshift(65);
+                    }
+                }
+
             }
         };
 
