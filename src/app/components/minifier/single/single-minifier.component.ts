@@ -50,6 +50,9 @@ export class SingleMinifierComponent implements OnInit, AfterViewInit {
         const urlSegments: UrlSegment[] = this._activatedRoute.snapshot.url;
         const lastSegment: string = urlSegments[urlSegments.length - 1].path;
         this._enableDevFeatures = lastSegment === 'dev';
+        if (this._enableDevFeatures) {
+            this._svgMinifyOptions.groupGradients = true;
+        }
     }
 
     ngAfterViewInit(): void {

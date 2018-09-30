@@ -8,10 +8,11 @@ import { SvgMinifyOptions } from "../classes/svg/options/svg-minify-options.clas
 import { ProcessFunctions } from "../defs/type/process-function.type";
 import { VariableNames } from "../defs/variable-names";
 import { ColorUtils } from "../utils/color.utils";
+import { IdUtils } from "../utils/id.utils";
 import { StyleUtils } from "../utils/style.utils";
+import { DevFeatureService } from "./dev-feature.service";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
-import { DevFeatureService } from "./dev-feature.service";
 
 
 @Injectable()
@@ -243,41 +244,14 @@ export class MinifierService {
 
     /** Helper function for _idSubstitution(). */    
     private _generateReplacementIds(map: {[key: string]: IdProperties}): void {
-        const currentId: number[] = [65];
-
-        const incrementId = (o: number[]) => {
-        
-            // TODO Use all available valid characters.
-
-            // Loop through all the digits, starting at the least signification place.
-            for (let i = o.length - 1; i >= 0; i--) {
-
-                // If digit can be incremented, then stop here.
-                if (o[i] < 90) {
-                    o[i] += 1;
-                    break;
-                }
-
-                // Else reset digit to lowest value, and carry over.
-                else {
-                    o[i] = 65;
-
-                    // If cannot carry over anymore, then add a new digit in front.
-                    if (i == 0) {
-                        o.unshift(65);
-                    }
-                }
-
-            }
-        };
-
+        const currentId: number[] = IdUtils.newId();
         for (const key of Object.keys(map)) {
             const id: IdProperties = map[key];
             if (!id.useCount || !id.defFound) {
                 continue;
             }
-            id.replacement = String.fromCharCode(...currentId);
-            incrementId(currentId);
+            id.replacement = IdUtils.asString(currentId);
+            IdUtils.incrementId(currentId);
         }
 
     }
