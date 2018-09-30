@@ -128,3 +128,15 @@ export const removeDefaultStrokeMiter = (object: SvgObject, options: SvgMinifyOp
         }
     }
 };
+
+/** 
+ * Removes the gradientUnits properties on both linear and radial gradients. GT Sport 
+ * does not use the gradientUnits property; it will always default to 'userSpaceOnUse'
+ * (but not 'objectBoundingBox', which is actually the standard default).
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/gradientUnits
+ */
+export const removeGradientUnits = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
+    if (options.gtSportRemoveGradientUnits) {
+        delete object.properties.propertyMap['gradientUnits'];
+    }
+};

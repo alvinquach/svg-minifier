@@ -20,8 +20,14 @@
             <div class="checkboxes" fxLayout="column" fxLayoutGap="8px">
                 <mat-checkbox [(ngModel)]="svgMinifyOptions.outputSingleLine">Output single line</mat-checkbox>
                 <mat-checkbox [(ngModel)]="svgMinifyOptions.minifyElementIds">Minify element IDs</mat-checkbox>
+            </div>
+            <div class="subheader">
+                GT Sport Options
+            </div>
+            <div class="checkboxes" fxLayout="column" fxLayoutGap="8px">
                 <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportFixGradientTransform">Fix gradient transforms</mat-checkbox>
                 <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportFixRadialGradients">Fix radial gradients</mat-checkbox>
+                <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportRemoveGradientUnits">Remove gradient units</mat-checkbox>
                 <mat-checkbox [(ngModel)]="svgMinifyOptions.gtSportRemoveMiterLimits">Remove miter limits</mat-checkbox>
             </div>
             <div *ngIf="enableDevFeatures">

@@ -1,4 +1,4 @@
-import { fixGTSportRaidalGradient, removeDefaultStopColor, removeDefaultStrokeMiter } from "../../../defs/svg-object-type-functions";
+import { fixGTSportRaidalGradient, removeDefaultStopColor, removeDefaultStrokeMiter, removeGradientUnits } from "../../../defs/svg-object-type-functions";
 import { ProcessFunctions } from "../../../defs/type/process-function.type";
 
 export class SvgObjectType {
@@ -60,7 +60,10 @@ export class SvgObjectType {
     /** linearGradient */
     static readonly LinearGradient: SvgObjectType = {
         tag: 'linearGradient',
-        display: true
+        display: true,
+        postProcessFunctions: [
+            removeGradientUnits
+        ]
     }
 
     /** mask */
@@ -104,7 +107,8 @@ export class SvgObjectType {
         tag: 'radialGradient',
         display: true,
         postProcessFunctions: [
-            fixGTSportRaidalGradient
+            fixGTSportRaidalGradient,
+            removeGradientUnits
         ]
     }
     

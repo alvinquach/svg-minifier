@@ -70,6 +70,7 @@ export class SingleMinifierComponent implements OnInit, AfterViewInit {
         this._svgMinifyOptions.minifyElementIds = true;
         this._svgMinifyOptions.gtSportFixGradientTransform = true;
         this._svgMinifyOptions.gtSportFixRadialGradients = true;
+        this._svgMinifyOptions.gtSportRemoveGradientUnits = true;
         this._svgMinifyOptions.gtSportRemoveMiterLimits = true;
     }
 
