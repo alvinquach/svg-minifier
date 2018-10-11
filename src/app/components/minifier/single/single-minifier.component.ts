@@ -16,34 +16,45 @@ export class SingleMinifierComponent implements OnInit, AfterViewInit {
     
     private _svgMinifyOptions: SvgMinifyOptions = new SvgMinifyOptions();
 
-    private _fileContents: string;
-
-    private _results: string;
-
-    private _inputEl: HTMLInputElement;
-
-    private _enableDevFeatures: boolean;
-
-    constructor(private _cd: ChangeDetectorRef, 
-                private _minifierService: MinifierService,
-                private _activatedRoute: ActivatedRoute) {
-
-    }
-
     get svgMinifyOptions(): SvgMinifyOptions {
         return this._svgMinifyOptions;
     }
+
+    private _fileContents: string;
 
     get fileContents(): string {
         return this._fileContents;
     }
 
+    private _results: string;
+
     get results(): string {
         return this._results;
     }
 
+    private _inputEl: HTMLInputElement;
+
+    private _enableDevFeatures: boolean;
+
     get enableDevFeatures(): boolean {
         return this._enableDevFeatures;
+    }
+
+    private _shiftDecimals = true;
+
+    get shiftDecimals(): boolean {
+        return this._shiftDecimals;
+    }
+
+    set shiftDecimals(value: boolean) {
+        this._shiftDecimals = value;
+        this._svgMinifyOptions.decimalShift = value ? 2 : 0;
+    }
+
+    constructor(private _cd: ChangeDetectorRef, 
+                private _minifierService: MinifierService,
+                private _activatedRoute: ActivatedRoute) {
+
     }
 
     ngOnInit(): void {

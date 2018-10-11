@@ -1,5 +1,6 @@
 import { SvgObjectProperties } from "./property/svg-object-properties.class";
 import { SvgObjectType } from "./svg-object-type.class";
+import { SvgPathProperties } from "./property/path/svg-path-properties.class";
 
 /** Reprents an SVG element. */
 export class SvgObject {
@@ -8,7 +9,7 @@ export class SvgObject {
 
     private _tag: string;
 
-    private _properties: SvgObjectProperties = new SvgObjectProperties();
+    private _properties: SvgObjectProperties;
 
     private _children: SvgObject[] = [];
 
@@ -93,7 +94,7 @@ export class SvgObject {
             if (segment.length > 1) {
                 this._tag = null;
                 this._type = SvgObjectType.ElementInnerContent;
-                this._properties.parse(segment.substring(1));
+                this._properties = new SvgObjectProperties(segment.substring(1));
             }
 
             // Return here regardless of the segment length.
@@ -114,6 +115,7 @@ export class SvgObject {
         if (tagEndIndex < 0) {
             this._tag = segment;
             this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
+            this._properties = new SvgObjectProperties();
             return;
         }
 
@@ -122,7 +124,12 @@ export class SvgObject {
         this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
         segment = segment.substring(tagEndIndex + 1);
 
-        this._properties.parse(segment);
+        if (this._type === SvgObjectType.Path) {
+            this._properties = new SvgPathProperties(segment);
+        }
+        else {
+            this._properties = new SvgObjectProperties(segment);
+        }
 
     }
 

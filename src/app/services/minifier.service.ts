@@ -384,7 +384,7 @@ export class MinifierService {
         children.forEach(child => {
             this._explodeGroups(child, options);
             if (child.type == SvgObjectType.Group && 
-                (!child.properties.hasProperties ||
+                (!child.properties.hasProperties() ||
                 !options.minifyElementIds && this._groupOnlyHasId(child))) {
 
                 newChildren.push(...child.children);
@@ -406,7 +406,7 @@ export class MinifierService {
      */
     private _groupOnlyHasId(svgObject: SvgObject): boolean {
         const properties: SvgObjectProperties = svgObject.properties;
-        if (!properties.hasProperties) {
+        if (!properties.hasProperties()) {
             return false;
         }
         const propertyKeys: string[] = Object.keys(properties.propertyMap);

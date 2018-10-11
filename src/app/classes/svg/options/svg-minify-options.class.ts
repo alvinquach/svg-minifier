@@ -21,5 +21,8 @@ export class SvgMinifyOptions {
 
     /** DEV FEATURE */
     groupGradients: boolean = false;
+    
+    /** EXPERIMENTAL FEATURE */
+    decimalShift: number = 2;
 
 }

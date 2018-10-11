@@ -1,4 +1,4 @@
-import { Injectable } from "../../../node_modules/@angular/core";
+import { Injectable } from "@angular/core";
 import { SvgObject } from "../classes/svg/object/svg-object.class";
 import { SpecialItemNames } from "../defs/special-item-names";
 import { SvgObjectProperties } from "../classes/svg/object/property/svg-object-properties.class";

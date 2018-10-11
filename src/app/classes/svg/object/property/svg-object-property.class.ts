@@ -1,23 +1,7 @@
 export class SvgObjectProperty {
 
     private _value: string;
-    // private _value: string | number | Color;
 
-    private _format: SvgObjectPropertyFormat;
-
-    private _enabled: boolean;
-
-    constructor(
-        value: string,
-        // value: string | number | Color,
-        format: SvgObjectPropertyFormat = SvgObjectPropertyFormat.DEFAULT,
-        enabled: boolean = true) {
-
-            this.value = value;
-            // this._format = format;
-            this.enabled = enabled;
-    }
-    
     get value(): string {
         return this._value;
     }
@@ -26,17 +10,13 @@ export class SvgObjectProperty {
         this._value = value;
     }
 
-    // get value(): string | number | Color {
-    //     return this._value;
-    // }
-
-    // set value(value: string | number | Color) {
-    //     this._value = value;
-    // }
+    private _format: SvgObjectPropertyFormat;
 
     get format(): SvgObjectPropertyFormat {
         return this._format;
     }
+
+    private _enabled: boolean;
 
     get enabled(): boolean {
         return this._enabled;
@@ -46,11 +26,22 @@ export class SvgObjectProperty {
         this._enabled = enabled;
     }
 
+    constructor(
+        value: string,
+        // value: string | number | Color,
+        format: SvgObjectPropertyFormat = SvgObjectPropertyFormat.Default,
+        enabled: boolean = true) {
+
+            this.value = value;
+            // this._format = format;
+            this.enabled = enabled;
+    }
+    
 }
 
 export enum SvgObjectPropertyFormat {
-    DEFAULT,
-    NUMBER,
-    COLOR,
-    PERCENTAGE
+    Default,
+    Number,
+    Color,
+    Percentage
 }

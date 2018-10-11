@@ -6,6 +6,8 @@ import { ColorUtils } from "../utils/color.utils";
 import { MathUtils } from "../utils/math.utils";
 import { VariableNames } from "./variable-names";
 import { DecimalPipe } from "@angular/common";
+import { SvgObjectType } from "../classes/svg/object/svg-object-type.class";
+import { SvgPathProperties } from "../classes/svg/object/property/path/svg-path-properties.class";
 
 
 const _DecimalPipe: DecimalPipe = new DecimalPipe("en-US");
@@ -138,5 +140,61 @@ export const removeDefaultStrokeMiter = (object: SvgObject, options: SvgMinifyOp
 export const removeGradientUnits = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
     if (options.gtSportRemoveGradientUnits) {
         delete object.properties.propertyMap['gradientUnits'];
+    }
+};
+
+/**
+ * Exprerimental
+ */
+export const shiftDecimal = (object: SvgObject, options: SvgMinifyOptions, extras: any) => {
+    if (!options.decimalShift) {
+        return;
+    }
+    const properties = object.properties.propertyMap;
+
+    // Gradients that have the gradientUnits set to objectBoundingBox should not have their values shifted.
+    if (object.type === SvgObjectType.LinearGradient || object.type === SvgObjectType.RadialGradient) {
+
+        // If the gradientUnits property was removed, then we can assume that its value is meant to be userSpaceOnUse.
+        if (!options.gtSportRemoveGradientUnits && !('gradientUnits' in properties && properties['gradientUnits'].value === 'userSpaceOnUse')) {
+            return;
+        }
+    }
+
+    const multiplier = Math.pow(10, options.decimalShift);
+
+    const shiftableProperties = object.type.decimalShiftProperites || [];
+    shiftableProperties.forEach(p => {
+        if (p in properties) {
+            const value = parseFloat(properties[p].value);
+            if (isNaN(value)) {
+                return;
+            }
+            properties[p].value = String(Math.round(value * multiplier));
+        }
+
+        // Fix for stroke-width of 1
+        else if (p === 'stroke-width' && 'stroke' in properties) {
+            properties['stroke-width'] = new SvgObjectProperty(String(multiplier));
+        }
+    });
+
+    // Adjust the points for various types of paths below.
+
+    if (object.type === SvgObjectType.Path) {
+        const d = (<SvgPathProperties>object.properties).d;
+        d.forEach(command => {
+            for (let i = 0; i < command.coords.length; i++) {
+                command.coords[i] = Math.round(command.coords[i] * multiplier);
+            }
+        });
+    }
+
+    // Adjust view box size
+    if (object.type === SvgObjectType.Svg) {
+        if ('viewBox' in properties) {
+            const viewBox = properties['viewBox'].value.split(' ');
+            properties['viewBox'].value = viewBox.map(v => Math.round(parseFloat(v) * multiplier)).join(' ');
+        }
     }
 };

@@ -2,13 +2,19 @@ import { SvgObjectProperty } from "./svg-object-property.class";
 
 export class SvgObjectProperties {
 
-    private readonly _propertyMap: {[key: string]: SvgObjectProperty} = {};
+    protected readonly _propertyMap: {[key: string]: SvgObjectProperty} = {};
+
+    get propertyMap(): {[key: string]: SvgObjectProperty} {
+        return this._propertyMap;
+    }
 
     /** Contents should be in the format of: property1="value1" property2="value 2" */
     constructor(contents?: string) {
-
         this.parse(contents);
+    }
 
+    hasProperties(): boolean {
+        return !!Object.keys(this._propertyMap).length;
     }
 
     parse(contents: string): void {
@@ -37,13 +43,10 @@ export class SvgObjectProperties {
 
     }
 
-    get propertyMap(): {[key: string]: SvgObjectProperty} {
-        return this._propertyMap;
-    }
-
-    get hasProperties(): boolean {
-        return !!Object.keys(this._propertyMap).length;
+    toString(): string {
+        return Object.keys(this._propertyMap)
+            .map(key => `${key}="${this._propertyMap[key].value}"`)
+            .join(" ");
     }
 
 }
-

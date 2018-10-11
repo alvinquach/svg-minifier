@@ -16,13 +16,11 @@ export class SvgWriterService {
      */
     writeAsString(svgObject: SvgObject, indent?: string, level: number = 0): string {
 
-        // console.log(svgObject)
-        
         // Get the properties and its keys from the SVG element.
         const properties: SvgObjectProperties = svgObject.properties;
 
         // If the SVG element has no properties or children, then it can be ignored.
-        if (!properties.hasProperties && !svgObject.children.length) {
+        if (!properties.hasProperties() && !svgObject.children.length) {
             return "";
         }
 
@@ -32,10 +30,7 @@ export class SvgWriterService {
         result += this.generateIndent(level, indent) + "<" + svgObject.tag;
 
         // Write properties, if any.
-        const propertyMap: {[key: string]: SvgObjectProperty} = properties.propertyMap;
-        for (const key in propertyMap) {
-            result += " " + key + "=\"" + propertyMap[key].value + "\"";
-        }
+        result += ` ${properties.toString()}`
 
         // Write children, if any.
         const children: SvgObject[] = svgObject.children;

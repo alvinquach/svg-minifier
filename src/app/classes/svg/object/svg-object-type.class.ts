@@ -1,4 +1,4 @@
-import { fixGTSportRaidalGradient, removeDefaultStopColor, removeDefaultStrokeMiter, removeGradientUnits } from "../../../defs/svg-object-type-functions";
+import { fixGTSportRaidalGradient, removeDefaultStopColor, removeDefaultStrokeMiter, removeGradientUnits, shiftDecimal } from "../../../defs/svg-object-type-functions";
 import { ProcessFunctions } from "../../../defs/type/process-function.type";
 
 export class SvgObjectType {
@@ -7,7 +7,13 @@ export class SvgObjectType {
     static readonly Circle: SvgObjectType = {
         tag: 'circle',
         isPathItem: true,
-        display: true
+        display: true,
+        postProcessFunctions: [
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'cx', 'cy', 'r', 'stroke-width'
+        ]
     }
 
     /** clipPath */
@@ -20,7 +26,13 @@ export class SvgObjectType {
     static readonly Ellipse: SvgObjectType = {
         tag: 'ellipse',
         isPathItem: true,
-        display: true
+        display: true,
+        postProcessFunctions: [
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'cx', 'cy', 'rx', 'ry', 'stroke-width'
+        ]
     }
 
     /** defs */
@@ -53,7 +65,11 @@ export class SvgObjectType {
         isPathItem: true,
         display: true,
         postProcessFunctions: [
-            removeDefaultStrokeMiter
+            removeDefaultStrokeMiter,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'x1', 'x2', 'y1', 'y2', 'stroke-width'
         ]
     }
 
@@ -62,7 +78,11 @@ export class SvgObjectType {
         tag: 'linearGradient',
         display: true,
         postProcessFunctions: [
-            removeGradientUnits
+            removeGradientUnits,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'x1', 'x2', 'y1', 'y2'
         ]
     }
 
@@ -78,7 +98,11 @@ export class SvgObjectType {
         isPathItem: true,
         display: true,
         postProcessFunctions: [
-            removeDefaultStrokeMiter
+            removeDefaultStrokeMiter,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'stroke-width'
         ]
     }
 
@@ -88,7 +112,11 @@ export class SvgObjectType {
         isPathItem: true,
         display: true,
         postProcessFunctions: [
-            removeDefaultStrokeMiter
+            removeDefaultStrokeMiter,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'stroke-width'
         ]
     }
 
@@ -98,7 +126,11 @@ export class SvgObjectType {
         isPathItem: true,
         display: true,
         postProcessFunctions: [
-            removeDefaultStrokeMiter
+            removeDefaultStrokeMiter,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'stroke-width'
         ]
     }
 
@@ -108,7 +140,11 @@ export class SvgObjectType {
         display: true,
         postProcessFunctions: [
             fixGTSportRaidalGradient,
-            removeGradientUnits
+            removeGradientUnits,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'cx', 'cy', 'r'
         ]
     }
     
@@ -118,7 +154,11 @@ export class SvgObjectType {
         isPathItem: true,
         display: true,
         postProcessFunctions: [
-            removeDefaultStrokeMiter
+            removeDefaultStrokeMiter,
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            'x', 'y', 'width', 'height', 'rx', 'ry', 'stroke-width'
         ]
     }
 
@@ -134,7 +174,10 @@ export class SvgObjectType {
     /** svg */
     static readonly Svg: SvgObjectType = {
         tag: 'svg',
-        display: true
+        display: true,
+        postProcessFunctions: [
+            shiftDecimal
+        ]
     }
 
     /** use */
@@ -171,6 +214,9 @@ export class SvgObjectType {
 
     /** A list of functions to be executed on the SVG object after the global processing operations. */
     readonly postProcessFunctions?: ProcessFunctions;
+
+    /** A list of properties that should be affected when applying decimal shift. */
+    readonly decimalShiftProperites?: string[];
 
     static findByTag(tag: string): SvgObjectType {
         if (!this._tagMap) {
