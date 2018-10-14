@@ -44,7 +44,14 @@ export class SvgObjectType {
     /** filter */
     static readonly Filter: SvgObjectType = {
         tag: 'filter',
-        display: false
+        display: true,
+        postProcessFunctions: [
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            // TODO Ignore depending on filterUnits
+            'x', 'y', 'width', 'height'
+        ]
     }
 
     /** g */
@@ -89,7 +96,14 @@ export class SvgObjectType {
     /** mask */
     static readonly Mask: SvgObjectType = {
         tag: 'mask',
-        display: false
+        display: true,
+        postProcessFunctions: [
+            shiftDecimal
+        ],
+        decimalShiftProperites: [
+            // TODO Ignore depending on maskContentUnits/maskUnits
+            'x', 'y', 'width', 'height'
+        ]
     }
 
     /** path */
