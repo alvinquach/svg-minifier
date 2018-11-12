@@ -1,6 +1,6 @@
+import { SvgObject } from "../../svg-object.class";
 import { SvgObjectProperties } from "../svg-object-properties.class";
 import { SvgPathCommand } from "./svg-path-command.class";
-import { SvgObjectProperty } from "../svg-object-property.class";
 
 const ValidCommands: string[] = [
     'M', 'm', 'L', 'l', 'H', 'h', 'V', 'v', 'Z', 'z',   // Line Commands
@@ -19,8 +19,8 @@ export class SvgPathProperties extends SvgObjectProperties {
         return this._d;
     }
 
-    constructor(contents?: string) {
-        super(contents);
+    constructor(parent: SvgObject, contents?: string) {
+        super(parent, contents);
     }
 
     hasProperties(): boolean {

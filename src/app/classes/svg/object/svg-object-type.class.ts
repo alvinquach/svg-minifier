@@ -84,6 +84,7 @@ export class SvgObjectType {
     static readonly LinearGradient: SvgObjectType = {
         tag: 'linearGradient',
         display: true,
+        idRequired: true,
         postProcessFunctions: [
             removeGradientUnits,
             shiftDecimal
@@ -152,6 +153,7 @@ export class SvgObjectType {
     static readonly RadialGradient: SvgObjectType = {
         tag: 'radialGradient',
         display: true,
+        idRequired: true,
         postProcessFunctions: [
             fixGTSportRaidalGradient,
             removeGradientUnits,
@@ -219,6 +221,8 @@ export class SvgObjectType {
     readonly isPathItem?: boolean;
 
     readonly display: boolean;
+
+    readonly idRequired?: boolean;
 
     /** 
      * A list of functions to be executed on the SVG object before the global processing operations

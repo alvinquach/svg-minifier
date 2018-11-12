@@ -1,15 +1,23 @@
+import { SvgObject } from "../svg-object.class";
 import { SvgObjectProperty } from "./svg-object-property.class";
 
 export class SvgObjectProperties {
 
+    protected readonly _parent: SvgObject;
+
     protected readonly _propertyMap: {[key: string]: SvgObjectProperty} = {};
+
+    get parent(): SvgObject {
+        return this._parent;
+    }
 
     get propertyMap(): {[key: string]: SvgObjectProperty} {
         return this._propertyMap;
     }
 
     /** Contents should be in the format of: property1="value1" property2="value 2" */
-    constructor(contents?: string) {
+    constructor(parent: SvgObject, contents?: string) {
+        this._parent = parent;
         this.parse(contents);
     }
 

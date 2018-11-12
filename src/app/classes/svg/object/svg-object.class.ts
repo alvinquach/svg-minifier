@@ -5,6 +5,8 @@ import { SvgPathProperties } from "./property/path/svg-path-properties.class";
 /** Reprents an SVG element. */
 export class SvgObject {
 
+    private _parent: SvgObject;
+
     private _type: SvgObjectType = SvgObjectType.Default;
 
     private _tag: string;
@@ -13,7 +15,9 @@ export class SvgObject {
 
     private _children: SvgObject[] = [];
 
-    constructor(segment: string, nextSegments: string[]) {
+    constructor(segment: string, nextSegments: string[], parent?: SvgObject) {
+
+        this._parent = parent;
 
         let hasChildren = true;
 
@@ -50,8 +54,16 @@ export class SvgObject {
                 break;
             }
 
-            this._children.push(new SvgObject(nextSegment, nextSegments));
+            this._children.push(new SvgObject(nextSegment, nextSegments, this));
         }
+    }
+
+    get parent(): SvgObject {
+        return this._parent;
+    }
+
+    set parent(value: SvgObject) {
+        this._parent = value;
     }
     
     get type(): SvgObjectType {
@@ -94,7 +106,7 @@ export class SvgObject {
             if (segment.length > 1) {
                 this._tag = null;
                 this._type = SvgObjectType.ElementInnerContent;
-                this._properties = new SvgObjectProperties(segment.substring(1));
+                this._properties = new SvgObjectProperties(this, segment.substring(1));
             }
 
             // Return here regardless of the segment length.
@@ -115,7 +127,7 @@ export class SvgObject {
         if (tagEndIndex < 0) {
             this._tag = segment;
             this._type = SvgObjectType.findByTag(this._tag) || SvgObjectType.Default;
-            this._properties = new SvgObjectProperties();
+            this._properties = new SvgObjectProperties(this);
             return;
         }
 
@@ -125,10 +137,10 @@ export class SvgObject {
         segment = segment.substring(tagEndIndex + 1);
 
         if (this._type === SvgObjectType.Path) {
-            this._properties = new SvgPathProperties(segment);
+            this._properties = new SvgPathProperties(this, segment);
         }
         else {
-            this._properties = new SvgObjectProperties(segment);
+            this._properties = new SvgObjectProperties(this, segment);
         }
 
     }

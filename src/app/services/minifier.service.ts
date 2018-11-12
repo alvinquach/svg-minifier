@@ -258,17 +258,29 @@ export class MinifierService {
 
     /** Helper function for _idSubstitution(). */
     private _replaceIdReferences(propertiesFlatMap: SvgObjectProperties[], map: {[key: string]: IdProperties}): void {
-        propertiesFlatMap.map(p  => p.propertyMap).forEach(properties => {
+        propertiesFlatMap.forEach(p => {
+            const properties = p.propertyMap;
             for (const key in properties) {
                 const value: string = properties[key].value;
-                if (key == "id") {
-                    const id: IdProperties = map[value];
+                if (key === 'id') {
+                    const id:IdProperties = map[value];
                     if (id) {
                         if (id.replacement) {
                             properties[key].value = id.replacement;
                         }
                         else {
-                            delete properties[key];
+                            const svgObject = p.parent;
+                            if (svgObject && svgObject.type.idRequired) {
+                                const parentObject = svgObject.parent;
+                                const index = parentObject.children.indexOf(svgObject);
+                                if (index > -1) {
+                                    console.log(svgObject)
+                                    parentObject.children.splice(index, 1);
+                                    // TODO Remove parent reference from object?
+                                    continue;
+                                }
+                            }
+                            delete properties['id'];
                         }
                     }
                 }
@@ -397,6 +409,7 @@ export class MinifierService {
         if (changed) {
             children.splice(0, children.length);
             children.push(...newChildren);
+            children.forEach(c => c.parent = svgObject);
         }
     }
 
