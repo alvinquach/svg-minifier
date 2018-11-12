@@ -13,6 +13,7 @@ import { StyleUtils } from "../utils/style.utils";
 import { DevFeatureService } from "./dev-feature.service";
 import { SvgParserService } from "./svg-parser.service";
 import { SvgWriterService } from "./svg-writer.service";
+import { MinifierUtils } from "../utils/minifier.utils";
 
 
 @Injectable()
@@ -43,7 +44,7 @@ export class MinifierService {
 
         // Apply the "Group Gradient" dev feature.
         if (svgMinifyOptions.groupGradients) {
-            this._devFeatures.groupGradients(parsed);
+            this._devFeatures.groupGradients(parsed, svgMinifyOptions);
         }
         
         // Remove elements that will not be displayed in GT Sport.
@@ -79,7 +80,7 @@ export class MinifierService {
         this._shortenHexCodes(propertiesFlatMap);
 
         // Ungroup groups
-        this._explodeGroups(parsed, svgMinifyOptions);
+        MinifierUtils.explodeGroups(parsed, svgMinifyOptions);
 
         // Apply the post-process functions for each element as defined by its type in SvgObjectType.
         this._processIndividualElements('post', parsed, svgMinifyOptions, {
@@ -386,47 +387,6 @@ export class MinifierService {
             });
 
         });
-    }
-
-    /** Ungroups the groups that have no special properties. */
-    private _explodeGroups(svgObject: SvgObject, options: SvgMinifyOptions): void {
-        const children: SvgObject[] = svgObject.children;
-        const newChildren: SvgObject[] = [];
-        let changed: boolean = false;
-        children.forEach(child => {
-            this._explodeGroups(child, options);
-            if (child.type == SvgObjectType.Group && 
-                (!child.properties.hasProperties() ||
-                !options.minifyElementIds && this._groupOnlyHasId(child))) {
-
-                newChildren.push(...child.children);
-                changed = true;
-            }
-            else {
-                newChildren.push(child);
-            }
-        });
-        if (changed) {
-            children.splice(0, children.length);
-            children.push(...newChildren);
-            children.forEach(c => c.parent = svgObject);
-        }
-    }
-
-    /** 
-     * Helper method for _explodeGroups that determines whether 
-     * the only property that the element has is "id". 
-     */
-    private _groupOnlyHasId(svgObject: SvgObject): boolean {
-        const properties: SvgObjectProperties = svgObject.properties;
-        if (!properties.hasProperties()) {
-            return false;
-        }
-        const propertyKeys: string[] = Object.keys(properties.propertyMap);
-        if (propertyKeys.length > 1) {
-            return false;
-        }
-        return propertyKeys.indexOf('id') == 0;
     }
 
     /** Calls process functions on each individual SVG element, as defined by their SvgObjectType. */
