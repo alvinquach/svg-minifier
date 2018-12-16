@@ -36,7 +36,11 @@
                 </div>
                 <div class="checkboxes" fxLayout="column" fxLayoutGap="8px">
                     <mat-checkbox [(ngModel)]="svgMinifyOptions.groupGradients">Group gradients</mat-checkbox>
-                    <mat-checkbox [(ngModel)]="shiftDecimals">Shift decimals 2 places</mat-checkbox>
+                    <mat-radio-group class="radio-group" [(ngModel)]="svgMinifyOptions.decimalShift">
+                        <mat-radio-button [value]="0">No decimal shift</mat-radio-button>
+                        <mat-radio-button [value]="1">Shift decimals 1 place</mat-radio-button>
+                        <mat-radio-button [value]="2">Shift decimals 2 places</mat-radio-button>
+                    </mat-radio-group>
                 </div>
             </div>
         </div>

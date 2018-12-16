@@ -40,17 +40,6 @@ export class SingleMinifierComponent implements OnInit, AfterViewInit {
         return this._enableDevFeatures;
     }
 
-    private _shiftDecimals = true;
-
-    get shiftDecimals(): boolean {
-        return this._shiftDecimals;
-    }
-
-    set shiftDecimals(value: boolean) {
-        this._shiftDecimals = value;
-        this._svgMinifyOptions.decimalShift = value ? 2 : 0;
-    }
-
     constructor(private _cd: ChangeDetectorRef, 
                 private _minifierService: MinifierService,
                 private _activatedRoute: ActivatedRoute) {
