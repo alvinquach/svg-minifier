@@ -291,7 +291,7 @@ export class MinifierService {
                         const id: IdProperties = map[oldId];
                         if (id) {
                             if (id.replacement) {
-                                properties[key].value = value.replace(oldId, id.replacement);
+                                properties[key].value = value.replace(`#${oldId}`, `#${id.replacement}`);
                             }
                             else {
                                 delete properties[key];
