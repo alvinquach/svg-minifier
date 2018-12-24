@@ -190,11 +190,23 @@ export const shiftDecimal = (object: SvgObject, options: SvgMinifyOptions, extra
         });
     }
 
+    else if (object.type === SvgObjectType.Polygon || object.type === SvgObjectType.Polyline) {
+        if ('points' in properties) {
+            const points = properties['points'].value.trim().split(/[ ,]+/);
+            properties['points'].value = points
+                .map((v, i) => `${Math.round(parseFloat(v) * multiplier)}${i % 2 ? ' ' : ','}`)
+                .join('')
+                .trim();
+        }
+    }
+
     // Adjust view box size
-    if (object.type === SvgObjectType.Svg) {
+    else if (object.type === SvgObjectType.Svg) {
         if ('viewBox' in properties) {
             const viewBox = properties['viewBox'].value.split(' ');
-            properties['viewBox'].value = viewBox.map(v => Math.round(parseFloat(v) * multiplier)).join(' ');
+            properties['viewBox'].value = viewBox
+                .map(v => Math.round(parseFloat(v) * multiplier))
+                .join(' ');
         }
     }
 };
